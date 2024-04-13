@@ -56,5 +56,8 @@
       "@lavamoat/preinstall-always-fail": false,
       "sharp": true
     }
+  },
+  "dependencies": {
+    "zod": "^3.22.4"
   }
 }

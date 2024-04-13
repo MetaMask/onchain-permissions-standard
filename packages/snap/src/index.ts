@@ -1,35 +1,69 @@
-import type { OnRpcRequestHandler } from '@metamask/snaps-sdk';
+import { OnRpcRequestHandler } from '@metamask/snaps-sdk';
 import { panel, text } from '@metamask/snaps-sdk';
+import { z } from 'zod';
 
-/**
- * Handle incoming JSON-RPC requests, sent through `wallet_invokeSnap`.
- *
- * @param args - The request handler args as object.
- * @param args.origin - The origin of the request, e.g., the website that
- * invoked the snap.
- * @param args.request - A validated JSON-RPC request object.
- * @returns The result of `snap_dialog`.
- * @throws If the request method is not valid for this snap.
- */
-export const onRpcRequest: OnRpcRequestHandler = async ({
-  origin,
-  request,
-}) => {
+// Define the schema for permission requests
+const PermissionsRequest = z.object({
+  permissions: z.array(
+    z.object({
+      sessionAccount: z.object({
+        caip10Address: z.string(),
+      }).optional(),
+      type: z.string(),
+      data: z.object({
+        caip10Address: z.string().optional(),
+        limit: z.string().optional(),
+      }).optional(),
+      required: z.boolean(),
+    })
+  ),
+});
+
+type PermissionsRequest = z.infer<typeof PermissionsRequest>;
+
+// Store for registered permission capabilities
+const permissionCapabilities = new Map<string, string[]>();
+
+export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => {
   switch (request.method) {
-    case 'hello':
-      return snap.request({
+    case 'wallet_requestPermissions':
+      // Validate the request against the schema
+      const validatedRequest = PermissionsRequest.parse(request.params);
+
+      // Check if any account snaps have registered the needed capabilities
+      const capableAccounts = validatedRequest.permissions.map(permission => {
+        const accountsForPermission = [...permissionCapabilities.entries()]
+          .filter(([_, capabilities]) => capabilities.includes(permission.type))
+          .map(([account]) => account);
+        
+        return accountsForPermission;
+      }).flat();
+      
+      if (capableAccounts.length === 0) {
+        throw new Error('No accounts found with the requested permission capabilities');
+      }
+
+      // TODO: Delegate to capable accounts to generate the PermissionsContext
+
+      // Display a confirmation to the user
+      const confirmationResult = await snap.request({
         method: 'snap_dialog',
         params: {
           type: 'confirmation',
           content: panel([
-            text(`Hello, **${origin}**!`),
-            text('This custom confirmation is just for display purposes.'),
-            text(
-              'But you can edit the snap source code to make it do something, if you want to!',
-            ),
+            text(`The site ${origin} is requesting the following permissions:`),
+            // TODO: Display the requested permissions
           ]),
         },
       });
+
+      // TODO: Return the PermissionsContext if user approved, else throw
+
+    case 'registerPermissionCapabilities':
+      const { account, capabilities } = request.params;
+      permissionCapabilities.set(account, capabilities);
+      return true;
+
     default:
       throw new Error('Method not found.');
   }
