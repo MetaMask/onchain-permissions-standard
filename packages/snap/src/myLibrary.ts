@@ -1,4 +1,8 @@
+import { z } from 'zod';
+
 const PERMISSIONS_SNAP_ID = 'TODO_PLACEHOLDER';
+
+
 
 const createMyLibrary = async (options) => {
 
@@ -15,8 +19,10 @@ const createMyLibrary = async (options) => {
         throw new UnauthorizedError(`Method ${request.method} not authorized for origin ${origin}.`);
       }
 
+      // These are the internal methods that the permission system kernel requires.
+      // The permission system kernel is responsible for handling the permissions request.
       switch (request.method) {
-        case "hello":
+        case "wallet_requestOnchainPermissions":
           return "world!";
     
         case "secureMethod":
