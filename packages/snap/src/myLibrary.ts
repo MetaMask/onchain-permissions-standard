@@ -6,7 +6,6 @@ const createMyLibrary = async (options) => {
   const { permissions }  = options;
 
   return {
-
     renderAttenuatorFor: (objectId) => {
       const permission = permissionsMap.get(objectId);
       switch (permission.type) {
@@ -38,12 +37,8 @@ const createMyLibrary = async (options) => {
             throw new Error('Kernel Error: Requested attenuator not defined. Please inform MetaMask.');
         }
       },
-
-
-
     }
   } 
-
 }
 
 function initializePermission(permission) {

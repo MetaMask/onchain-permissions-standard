@@ -20,8 +20,12 @@
     "snap_dialog": {},
     "endowment:rpc": {
       "dapps": true,
-      "snaps": false
-    }
+      "snaps": true
+    },
+    "endowment:page-home": {},
+    "endowment:cronjob": {},
+    "endowment:network-access": {},
+    "endowment:ethereum-provider": {}
   },
   "manifestVersion": "0.1"
 }

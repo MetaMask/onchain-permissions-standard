@@ -9,9 +9,9 @@
  * of interfacing with the snaps system,
  * so that smart contract developers
  * can fork this repository,
- * and may only need to edit `myLibrary.ts`.
+ * and may only need to edit `myLibrary.ts` (and `snap.manifest.json`).
  * 
- * This can allow any permission from any digital source
+ * This intents to allow any permission from any digital source
  * to be gathered into the user's MetaMask inventory
  * so those permissions can be more freely
  * and hopefully constructively interconnected around the web.
@@ -27,23 +27,69 @@ const PERMISSIONS_SNAP_ID = 'TODO_PLACEHOLDER';
 
 const permissionsMap: Map<string, Permission> = new Map();
 
+// Persist some data.
+await snap.request({
+  method: "snap_manageState",
+  params: { 
+    operation: "update",
+    newState: { hello: "world" },
+  },
+});
+
+
+console.log(persistedData);
+// { hello: "world" }
+
+// If there's no need to store data anymore, clear it out.
+await snap.request({
+  method: "snap_manageState",
+  params: { 
+    operation: "clear",
+  },
+});
+
 type AccountSettings = {
   permissions: Array<unknown>,
 }
-const settings: AccountSettings = await getPersistedSettings() || createFreshSettings();
+const permissions: AccountSettings = await getPersistedSettings() || createFreshSettings();
 
 // Attn SCA devs:
 // This is the library you implement for YOUR contract account.
 // Feel free to just modify the example library!
-const myLibrary = createMyLibrary(settings);
+const myLibrary = createMyLibrary({ permissions, registerPermission });
+
+function async registerPermission (permission: Permission) {
+  await window.ethereum.request({
+    method: "wallet_requestSnaps",
+    params: {
+      "npm:@metamask/onchain-permissions-system": {},
+    },
+  });
+  
+  // Invoke the "hello" JSON-RPC method exposed by the Snap.
+  const response = await window.ethereum.request({
+    method: "wallet_invokeSnap",
+    params: {
+      snapId: "npm:@metamask/onchain-permissions-system",
+      request: {
+        method: "wallet_registerAsset",
+        params: permission,
+      },
+    },
+  });
+}
 
 export const onRpcRequest: OnRpcRequestHandler = accountKit.handler();
 
 // TODO: Implement:
 function getPersistedSettings () : AccountSettings {
-  // However you get storage from snaps;
-  return false;
+  const persistedData = await snap.request({
+    method: "snap_manageState",
+    params: { operation: "get" },
+  });
+  return persistedData;
 }
+
 function createFreshSettings () : AccountSettings {
   return {
     permissions: [],
@@ -71,7 +117,9 @@ return {
       case "accountProvider_grantPermission":
         const { attenuatorResults, objectId }
         return myLibrary.grantPermission
-  
+ 
+      // TODO: Need a way for the account snap to register the permissions it has.        
+
       default:
         throw new Error("Method not found.");
     }

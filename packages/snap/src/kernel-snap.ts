@@ -1,4 +1,5 @@
 import { z } from 'zod';
+const PERMISSIONS_SNAP_ID = 'TODO_PLACEHOLDER';
 
 // Onchain Permissions Standard interface
 const PermissionsRequest = z.object({
@@ -20,6 +21,8 @@ const PermissionsRequest = z.object({
     }),
   ),
 });
+
+const snapsThatMayAddPermissions = new Set();
 
 type PermissionsRequest = z.infer<typeof PermissionsRequest>;
 
@@ -98,7 +101,8 @@ const permissionCapabilities = new Map<string, Permission[]>();
 
 export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => {
   switch (request.method) {
-    case 'wallet_requestPermissions':
+
+    case 'wallet_requestOnchainPermissions':
       // Validate the request against the schema
       const validatedRequest = PermissionsRequest.parse(request.params);
 
@@ -169,7 +173,36 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
 
       return permissionsContext;
 
-    case 'registerPermissionCapabilities':
+    case 'wallet_registerAsset':
+      const secondLine = request.params?.proposedName && typeof request.params.proposedName === 'string'
+        : `Offers you a new asset. It suggests the name *${request.params.proposedName}*. These assets will only be as real as their word.`
+      const result = await snap.request({
+        method: "snap_dialog",
+        params: {
+          type: "confirmation",
+          content: panel([
+            heading("New asset offer"),
+            // TODO: Get a petname API that works for snap names too
+            // Or just expand the existing `address` component like this:
+            address(request.origin),
+
+            text(secondLine),
+
+            text(`Or feel free to edit the name:`),
+            input({
+              type: 'text',
+              // TODO: Allow petnames as placeholder texts.
+              // Resolved names must not be accessible to the snap, of course.
+              placeholder: request.params.proposedName || address(request.origin),
+            })
+          ]),
+        },
+      });
+
+      if (result) {
+        snapsThatMayAddPermissions.set(request.origin, true);
+      }
+      
       const newPermissions = z.array(z.object({
         type: z.string(),
         methodName: z.string(),
@@ -179,6 +212,8 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
       permissionCapabilities.set(origin, newPermissions);
       return true;
 
+
+    case 'registerPermissionCapabilities':
     default:
       throw new Error('Method not found.');
   }
