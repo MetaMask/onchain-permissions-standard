@@ -120,6 +120,20 @@ return {
  
       // TODO: Need a way for the account snap to register the permissions it has.        
 
+      // TODO: Add ERC-7679 support:
+      case 'eth_sendBatchTransaction':
+
+      // TODO: Add classic account methods
+      case 'eth_accounts':
+      case 'eth_sendTransaction':
+      case 'eth_personalSign':
+      case 'eth_signTypedData':
+      case 'eth_signTypedData_v1':
+      case 'eth_signTypedData_v3':
+      case 'eth_signTypedData_v4':
+        throw new Error("Method not found");
+
+
       default:
         throw new Error("Method not found.");
     }
