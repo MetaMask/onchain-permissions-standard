@@ -81,7 +81,6 @@ function async registerPermission (permission: Permission) {
 
 export const onRpcRequest: OnRpcRequestHandler = accountKit.handler();
 
-// TODO: Implement:
 function getPersistedSettings () : AccountSettings {
   const persistedData = await snap.request({
     method: "snap_manageState",
@@ -116,7 +115,7 @@ return {
   
       case "accountProvider_grantPermission":
         const { attenuatorResults, objectId }
-        return myLibrary.grantPermission
+        return myLibrary.grantPermission(objectId);
  
       // TODO: Need a way for the account snap to register the permissions it has.        
 

@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
-
-const createMyLibrary = async (options) => {
+const createMyLibrary = async (options, registerPermission) => {
 
   const { permissions }  = options;
+  const additionalPermissions = async loadAdditionalPermissions();
 
   return {
     renderAttenuatorFor: (objectId) => {
@@ -37,12 +37,50 @@ const createMyLibrary = async (options) => {
             throw new Error('Kernel Error: Requested attenuator not defined. Please inform MetaMask.');
         }
       },
-    }
+    },
+
+    serialize: (permission: Permission) => {
+      // Implement deserialization logic
+    },
+
+    deserialize: (serializedPermission: string): Permission => {
+      // Implement deserialization logic
+    },
+
+    validatePermission: (permission: Permission): boolean => {
+      // Implement validation logic
+    },
+
+    revokePermission: async (permissionId: string): Promise<void> => {
+      // Implement revocation logic
+    },
+
+    renewPermission: async (permissionId: string, extension: number): Promise<void> => {
+      // Implement renewal logic
+    },
+
+    getPermissionMetadata: (permissionType: string): PermissionMetadata => {
+      // Implement metadata retrieval logic
+    },
+
+    listPermissionTypes: (): string[] => {
+      // Implement logic to list available permission types
+    },
+
+    onPermissionGranted: (callback: (permissionId: string) => void): void => {
+      // Implement event emitter logic for permission granted
+    },
+
+    onPermissionRevoked: (callback: (permissionId: string) => void): void => {
+      // Implement event emitter logic for permission revoked
+    },
   } 
 }
 
 function initializePermission(permission) {
+  await ethereum.request({
 
+  })
 }
 
 /* How a permission gets added internally
@@ -64,6 +102,11 @@ myLibrary.add([
   },
 ]);
 */
+
+async function loadAdditionalPermissions (): Permission[] {
+  // Optional to implement. Load from the network?
+  return [];
+}
 
 export createMyLibrary as createMyLibrary;
 

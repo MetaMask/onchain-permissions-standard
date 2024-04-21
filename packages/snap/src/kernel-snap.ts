@@ -212,6 +212,10 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
       permissionCapabilities.set(origin, newPermissions);
       return true;
 
+    case 'wallet_offerPermission':
+      // In this method, a permission and its name could be proposed to the wallet!
+      // We could start by supporting the Onchain Permissions Standard (EVM),
+      // And later add support for additional protocols' permissions right in the wallet.
 
     case 'registerPermissionCapabilities':
     default:
