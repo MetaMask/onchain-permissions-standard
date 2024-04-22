@@ -4,7 +4,8 @@ import {
   ConnectButton,
   InstallFlaskButton,
   ReconnectButton,
-  SendHelloButton,
+  RequestPuddingProofButton,
+  UsePuddingProofButton,
   Card,
 } from '../components';
 import { defaultSnapOrigin } from '../config';
@@ -117,10 +118,10 @@ const Index = () => {
   return (
     <Container>
       <Heading>
-        Welcome to <Span>template-snap</Span>
+        Welcome to the <Span>Onchain Permissions Standard Snap Demo</Span>
       </Heading>
       <Subtitle>
-        Get started by editing <code>src/index.ts</code>
+        Try out a new way of interacting with web3.
       </Subtitle>
       <CardContainer>
         {error && (
@@ -142,9 +143,25 @@ const Index = () => {
         {!installedSnap && (
           <Card
             content={{
-              title: 'Connect',
+              title: 'Install Kernel',
               description:
-                'Get started by connecting to and installing the example snap.',
+                'Get started by installing the new permissions system.',
+              button: (
+                <ConnectButton
+                  onClick={requestSnap}
+                  disabled={!isMetaMaskReady}
+                />
+              ),
+            }}
+            disabled={!isMetaMaskReady}
+          />
+        )}
+        {!installedSnap && (
+          <Card
+            content={{
+              title: 'Get New Account',
+              description:
+                'Second, install a new account type that knows how to use the permissions system.',
               button: (
                 <ConnectButton
                   onClick={requestSnap}
@@ -173,12 +190,29 @@ const Index = () => {
         )}
         <Card
           content={{
-            title: 'Send Hello message',
+            title: 'Request Permissions',
             description:
-              'Display a custom message within a confirmation screen in MetaMask.',
+              'Ask your wallet for pudding permission. More than just proof!',
             button: (
-              <SendHelloButton
-                onClick={handleSendHelloClick}
+              <RequestPuddingProofButton onClick={handleSendHelloClick}
+                disabled={!installedSnap}
+              />
+            ),
+          }}
+          disabled={!installedSnap}
+          fullWidth={
+            isMetaMaskReady &&
+            Boolean(installedSnap) &&
+            !shouldDisplayReconnectButton(installedSnap)
+          }
+        />
+        <Card
+          content={{
+            title: 'Use Pudding',
+            description:
+              'Now the dapp can use the pudding without additional confirmations!',
+            button: (
+              <UsePuddingProofButton onClick={handleSendHelloClick}
                 disabled={!installedSnap}
               />
             ),

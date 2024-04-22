@@ -9,6 +9,11 @@ This repository contains [MetaMask Snaps](https://snaps.metamask.io) example plu
 With the `kernel-snap` added to a [developer copy of MetaMask](https://metamask.io/flask), a developer can experiment with building their own account system directly into this permissions system within MetaMask, with the rest of the wallet UX provided. We hope this example code can be helpful to validate and "feel out" these APIs before they are escalated to consumer standards.
 
 This repository is not yet working, but once it is, a sample application will be a simple proof.
+
+## Workflow
+
+1. The DApp sends `wallet_requestOnchainPermissions` with a program that we run in an isolated environment that
+can customize the wallet experience.
   
 ## Types
 
@@ -83,11 +88,6 @@ export const zPermissionsResponse = z.object({
 export type PermissionsResponse = z.infer(zPermissionsResponse);
 ```
 
-## Workflow
-
-1. The DApp sends `wallet_requestOnchainPermissions` with a program that we run in an isolated environment that
-can customize the wallet experience.
-
 ## Snaps is pre-release software
 
 To interact with (your) Snaps, you will need to install [MetaMask Flask](https://metamask.io/flask/),
@@ -95,8 +95,7 @@ a canary distribution for developers that provides access to upcoming features.
 
 ## Getting Started
 
-Clone the template-snap repository [using this template](https://github.com/MetaMask/template-snap-monorepo/generate)
-and set up the development environment:
+Clone this repository and set up the development environment:
 
 ```shell
 yarn install && yarn start
@@ -105,7 +104,7 @@ yarn install && yarn start
 ## Cloning
 
 This repository contains GitHub Actions that you may find useful, see
-`.github/workflows` and [Releasing & Publishing](https://github.com/MetaMask/template-snap-monorepo/edit/main/README.md#releasing--publishing)
+`.github/workflows` and [Releasing & Publishing](https://github.com/MetaMask/onchain-permissions-standard/edit/main/README.md#releasing--publishing)
 below for more information.
 
 If you clone or create this repository outside the MetaMask GitHub organization,
