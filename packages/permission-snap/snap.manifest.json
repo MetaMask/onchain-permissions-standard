@@ -1,10 +1,10 @@
 {
   "version": "0.1.0",
-  "description": "An example Snap written in TypeScript.",
-  "proposedName": "TypeScript Example",
+  "description": "An example Snap for demonstrating interfacing with the Onchain Permissions snap.",
+  "proposedName": "Demo Account",
   "repository": {
     "type": "git",
-    "url": "https://github.com/MetaMask/template-snap-monorepo.git"
+    "url": "git@github.com:MetaMask/onchain-permissions-standard-snap.git"
   },
   "source": {
     "shasum": "jsTOVbQULyLUbDfDTUfN28ztAQXBf68b5dgpDUmzd5M=",
