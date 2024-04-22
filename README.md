@@ -1,5 +1,7 @@
 # Onchain Permissions Standard
 
+<img src="./packages/site/src/assets/kernel.webp" alt="drawing" width="200"/>
+
 This repository is a place for documenting and specifying the Onchain Permissions Standard, a next-generation interface for "wallets" that hold authority on decentralized cryptographic protocols to allow their users to safely and coherently interact with untrusted third parties, like websites.
 
 This repository contains [MetaMask Snaps](https://snaps.metamask.io) example plugins for the [MetaMask](https://metamask.io) wallet:
