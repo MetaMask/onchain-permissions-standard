@@ -7,6 +7,8 @@ This repository contains [MetaMask Snaps](https://snaps.metamask.io) example plu
 - A `permission-snap`, which is a sample account snap that provides a few example permissions to the kernel, meant to be forked by account teams.
 
 With the `kernel-snap` added to a [developer copy of MetaMask](https://metamask.io/flask), a developer can experiment with building their own account system directly into this permissions system within MetaMask, with the rest of the wallet UX provided. We hope this example code can be helpful to validate and "feel out" these APIs before they are escalated to consumer standards.
+
+This repository is not yet working, but once it is, a sample application will be a simple proof.
   
 ## Types
 
