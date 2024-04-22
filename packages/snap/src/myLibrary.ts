@@ -1,7 +1,9 @@
-// We can locally define this however we want:
-type Permission = {
+import { zSessionAccount, SessionAccount, zTypeDescriptor } from './types.ts';
 
-}
+// We can locally define this however we want:
+const Permission = z.object({
+  type: zTypeDescriptor,
+});
 
 const createMyLibrary = async ({ registerPermission }) => {
 
@@ -51,68 +53,38 @@ const createMyLibrary = async ({ registerPermission }) => {
       },
     },
 
-    issuePermissionTo: (permission: Permission, recipient: )
+    issuePermissionTo: (permission: Permission, recipient: SessionAccount): PermissionsResponse => {
+      return {
+        sessionAccount: recipient,
+        type: permission.type, // It's just parroting right now, not thinking.
+        data: {
+          caip10Address: 'placeholder-walderoo',
+          foo: 'bar!', // Specific to the type that was requested.
+        },
+      }
+    }
 
     validatePermission: (permission: Permission): boolean => {
       // Implement validation logic
+      return true;
     },
 
     revokePermission: async (permissionId: string): Promise<void> => {
       // Implement revocation logic
+      return false;
     },
 
     renewPermission: async (permissionId: string, extension: number): Promise<void> => {
       // Implement renewal logic
-    },
-
-    getPermissionMetadata: (permissionType: string): PermissionMetadata => {
-      // Implement metadata retrieval logic
+      return false;
     },
 
     listPermissionTypes: (): string[] => {
       // Implement logic to list available permission types
+      return [];
     },
 
-    onPermissionGranted: (callback: (permissionId: string) => void): void => {
-      // Implement event emitter logic for permission granted
-    },
-
-    onPermissionRevoked: (callback: (permissionId: string) => void): void => {
-      // Implement event emitter logic for permission revoked
-    },
   } 
 }
 
-function initializePermission(permission) {
-  await ethereum.request({
-
-  })
-}
-
-/* How a permission gets added internally
-const ONE_WEEK = 7 * 24 * 60 * 1000; // ms
-myLibrary.add([
-  {
-    metadata: {
-      type: {
-        name: 'erc20-token',
-      },
-    },
-    renderAttenuator: () => {
-      
-    },
-    grantPermission: async (recipientAddress, attenuatorResponse) => {
-      const { allowance, expiration }  = attenuatorResponse;
-      return myLibrary.grantAllowance(recipientAddress, attenuatorResponse);
-    },
-  },
-]);
-*/
-
-async function loadAdditionalPermissions (): Permission[] {
-  // Optional to implement. Load from the network?
-  return [];
-}
-
 export createMyLibrary as createMyLibrary;
-

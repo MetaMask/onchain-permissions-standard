@@ -24,6 +24,8 @@ import { OnRpcRequestHandler } from '@metamask/snaps-sdk';
 import { panel, text, form, input, button } from '@metamask/snaps-sdk';
 import { createMyLibrary } from './createMyLibrary.ts'
 const PERMISSIONS_SNAP_ID = 'TODO_PLACEHOLDER';
+import { zPermissionsOffer, PermissionsOffer } from './kernel.ts';
+
 
 // IDs must be deterministic, so using a hash to start:
 const permissionsMap: Map<string, Permission> = new Map();
@@ -105,6 +107,7 @@ return {
   }) => {
 
     // Defer to the permissions kernel for all comms.
+    // Rejecting all other messages.
     if (origin !== PERMISSIONS_SNAP_ID) {
       throw new UnauthorizedError(`Method ${request.method} not authorized for origin ${origin}.`);
     }
@@ -112,13 +115,40 @@ return {
     // These are the internal methods that the permission system kernel requires.
     // The permission system kernel is responsible for handling the permissions request.
     switch (request.method) {
-      case "accountProvider_renderAttenuatorsFor":
-        const { objectId } = request.params;
-        return myLibrary.renderAttenuatorFor(objectId);;
+      case "permissionProvider_grantAttenuatedPermission":
+        const grantParams = zPermissionToGrantParams.parse(request.params);
+        const { permissionId } = request.params;
+        const permission = permissionsMap.get(permissionId);
+        if (!permission) return false;
+        const attenuatorUI = myLibrary.renderAttenuatorFor(permission);
+        const interfaceId = await snap.request({
+          method: 'snap_createInterface',
+          params: {
+            ui: form({
+              name: 'attenuator-form',
+              children:[
+                text('Customize the permission before granting it to reduce your risk.'),
+                attenuatorUI,
+              ],
+            }),
+          },
+        });
+
+        const result = await snap.request({
+          method: 'snap_dialog',
+          params: {
+            type: 'Alert',
+            id: interfaceId,
+          },
+        });
+
+        console.log('Attenuator result:', result); // I suspect I'm guessing the response wrong.
+        const attenuatorParams = result['attenuator-form'];
+
   
       case "accountProvider_grantPermission":
-        const { attenuatorResults, objectId }
-        return myLibrary.grantPermission(objectId);
+        const { attenuatorResults, permissionId }
+        return myLibrary.grantPermission(permissionId);
  
       // TODO: Need a way for the account snap to register the permissions it has.        
 

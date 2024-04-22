@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { zPermissionsRequest, zTypeDescriptor } from './types.ts';
+import { zPermissionsRequest, zRequestedPermission, zTypeDescriptor, zSessionAccount } from './types.ts';
 const PERMISSIONS_SNAP_ID = 'TODO_PLACEHOLDER';
 
 // This is a local permissions definition.
@@ -18,7 +18,7 @@ type zPermission = z.object({
 
 type Permission = z.infer(zPermission);
 
-const zPermissionsOffer = z.object({
+export const zPermissionsOffer = z.object({
   // Used to propose this permission in response to requests:
   type: zTypeDescriptor,
 
@@ -29,7 +29,14 @@ const zPermissionsOffer = z.object({
   id: z.string(),
 });
 
-type PermissionsOffer = z.infer(zPermissionsOffer);
+export type PermissionsOffer = z.infer(zPermissionsOffer);
+
+export const zPermissionToGrantParams = z.object({
+  permissionId: z.string(),
+  sessionAccount: zSessionAccount,
+});
+
+export type PermissionToGrantParams = z.infer(zPermissionToGrantParams);
 
 // Store for registered permission capabilities
 const permissions: Permission[] = [];
@@ -38,7 +45,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
   switch (request.method) {
 
     // This method is used by snaps to offer its cryptographic abilities as permissions:
-    case 'wallet_offerPermission':
+    case 'wallet_offerOnchainPermission':
       const offered = zPermissionsOffer.passthrough().parse(request.params);
       const permission: Permission = {
         hostId: origin,
@@ -49,24 +56,30 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
       permissions.push(permission);
       return true;
 
-    // This method is used by dapps to request onchain permissions:
-    case 'wallet_requestOnchainPermissions':
+    // This method is used by dapps to request an onchain permission.
+    // Starting with a singular permission request for simplicity of implementation.
+    case 'wallet_requestOnchainPermission':
       // Validate the request against the schema
-      const validatedRequest = zPermissionsRequest.passthrough().parse(request.params);
+      const requestedPermission = zRequestedPermission.passthrough().parse(request.params);
 
       // Filter and deduplicate permissions
-      const relevantPermissions = validatedRequest.permissions.map(requestedPermission => {
-        return permissions.filter(storedPermission => 
+      const relevantPermissions = permissions.filter(storedPermission => 
 
           // Currently just matches type. Here is where we would add a rich type description system.
           // Could start by recognizing some extra parameters for known permission types,
           // But eventually would be great to have some general-purpose type fields.
           return storedPermission.type.name === requestedPermission.type.name;
         );
-      }).flat();
+      });
 
       if (relevantPermissions.length === 0) {
-        throw new Error('No matching permissions found');
+
+        // TODO: Here we should return a proper JSON-RPC error.
+        // Might be nice to obscure whether the user declined or didn't have it.
+        // Maybe add a delay to prevent brute force fingerprinting,
+        // Or actually show the user UI representing that something was requested they don't have,
+        // Ensuring a maximally human-like reaction time and obscuring the reason.
+        return false;
       }
 
       // Present the user with the list of permissions to choose from
@@ -78,7 +91,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
             children: [
               text('Select a permission to grant:'),
               ...relevantPermissions.map((permission, index) => 
-                text(`${index + 1}. ${permission.type} (${JSON.stringify(permission.data)})`)
+                text(`${index + 1}. ${address(permission.hostId)}: ${permission.proposedName}`)
               ),
               input({
                 name: 'selected-permission',
@@ -101,26 +114,36 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
         },
       });
 
+      // Get the user's selection:
       const selectedIndex = parseInt(result['selected-permission'], 10) - 1;
       const selectedPermission = relevantPermissions[selectedIndex];
 
       if (!selectedPermission) {
-        throw new Error('Invalid permission selection');
+        // Ideally give the user feedback and a chance to choose correctly.
+        // More ideally replace all this with a nice chooser UI.
+        return false;
       }
 
-      // Call the selected snap's method to get the PermissionsContext
-      const permissionsContext = await snap.request({
-        method: selectedPermission.methodName,
+      // Since I'm not sure if we can inline the attenuators from another snap yet, the permission-providing snap will be responsible
+      // for rendering its attenuator UI after the permission has been selected, as part of the granting process.
+      const grantParams: PermissionToGrantParams = {
+        permissionId: permission.hostPermissionId,
+        sessionAccount: requestedPermission.sessionAccount,
+      };
+      const permissionsResponse: PermissionsResponse = zPermissionsResponse.passthrough().parse(await window.ethereum.request({
+        method: "wallet_invokeSnap",
         params: {
-          data: selectedPermission.data,
-          sessionAccount: validatedRequest.permissions[selectedIndex].sessionAccount,
+          snapId: permission.hostId,
+          request: {
+            method: "permissionProvider_grantAttenuatedPermission",
+            params: grantParams,
+          },
         },
-      });
+      }));
 
-      return permissionsContext;
-    case 'registerPermissionCapabilities':
+      return permissionsResponse;
+
     default:
       throw new Error('Method not found.');
   }
 };
-

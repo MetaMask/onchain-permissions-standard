@@ -12,6 +12,8 @@ export const zSessionAccount = z.object({
   caip10Address: z.string(),
 });
 
+export type SessionAccount = z.infer(zSessionAccount);
+
 // Rather than only define permissions by name,
 // We can make this an object and leave room for forward-extensibility.
 export const zTypeDescriptor = z.object({
@@ -37,7 +39,7 @@ export const zPermissionsRequest = z.object({
 export const PermissionsRequest = z.infer(zPermissionsRequest);
 
 export const zGrantedPolicy = z.object({
-  sessionAccount: zSessionAccount.optional(),
+  sessionAccount: zSessionAccount,
   type: zTypeDescriptor,
   data: z.object({
     caip10Address: z.string(),
@@ -46,7 +48,7 @@ export const zGrantedPolicy = z.object({
 });
 
 export const zPermissionsResponse = z.object({
-  grantedPolicies: z.array(zGrantedPolicy),
+  grantedPolicy: zGrantedPolicy,
   submitToAddress: z.string(),
   permissionsContext: z.string(),
   initCode: z.string().optional(),
