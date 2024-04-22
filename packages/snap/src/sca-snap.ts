@@ -26,7 +26,6 @@ import { createMyLibrary } from './createMyLibrary.ts'
 const PERMISSIONS_SNAP_ID = 'TODO_PLACEHOLDER';
 import { zPermissionsOffer, PermissionsOffer } from './kernel.ts';
 
-
 // IDs must be deterministic, so using a hash to start:
 const permissionsMap: Map<string, Permission> = new Map();
 
@@ -61,7 +60,6 @@ function getIdFor(permission) {
 
   return hashHex;
 }
-
 
 function async registerPermission (permission: Permission) {
   await window.ethereum.request({
@@ -142,7 +140,7 @@ return {
           },
         });
 
-        console.log('Attenuator result:', result); // I suspect I'm guessing the response wrong.
+        console.log('Attenuator result:', result); // I suspect I'm guessing the response type wrong.
         const attenuatorParams = result['attenuator-form'];
 
   
