@@ -1,6 +1,6 @@
 /**
  * This is the entrypoint for a snap that handles permissions 
- * of some type, for some network,
+ * of some type, on some network(s) or ledger(s),
  * and wants to make those assets available to the user's discretion
  * when connecting to websites.
  * 
@@ -25,38 +25,41 @@ import { panel, text, form, input, button } from '@metamask/snaps-sdk';
 import { createMyLibrary } from './createMyLibrary.ts'
 const PERMISSIONS_SNAP_ID = 'TODO_PLACEHOLDER';
 
+// IDs must be deterministic, so using a hash to start:
 const permissionsMap: Map<string, Permission> = new Map();
-
-// Persist some data.
-await snap.request({
-  method: "snap_manageState",
-  params: { 
-    operation: "update",
-    newState: { hello: "world" },
-  },
-});
-
-
-console.log(persistedData);
-// { hello: "world" }
-
-// If there's no need to store data anymore, clear it out.
-await snap.request({
-  method: "snap_manageState",
-  params: { 
-    operation: "clear",
-  },
-});
 
 type AccountSettings = {
   permissions: Array<unknown>,
 }
-const permissions: AccountSettings = await getPersistedSettings() || createFreshSettings();
+const settings: AccountSettings = await getPersistedSettings() || createFreshSettings();
 
 // Attn SCA devs:
 // This is the library you implement for YOUR contract account.
 // Feel free to just modify the example library!
-const myLibrary = createMyLibrary({ permissions, registerPermission });
+const myLibrary = createMyLibrary({ registerPermission });
+
+settings.permissions.forEach((permission) => {
+  const permId = getIdFor(permission);
+  permissionsMap.set(permId, permission);
+});
+
+function getIdFor(permission) {
+  const permissionString = JSON.stringify(permission);
+
+  // Encode the text as a UTF-8 byte array
+  const encoder = new TextEncoder();
+  const data = encoder.encode(permissionString);
+
+  // Hash the data with SHA-256
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+
+  // Convert the hash to a hexadecimal string
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
+
+  return hashHex;
+}
+
 
 function async registerPermission (permission: Permission) {
   await window.ethereum.request({
@@ -90,9 +93,9 @@ function getPersistedSettings () : AccountSettings {
 }
 
 function createFreshSettings () : AccountSettings {
-  return {
+  return JSON.stringify({
     permissions: [],
-  }
+  });
 }
 
 return {

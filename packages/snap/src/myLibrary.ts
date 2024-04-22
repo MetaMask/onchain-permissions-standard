@@ -1,13 +1,25 @@
-import { z } from 'zod';
+// We can locally define this however we want:
+type Permission = {
 
-const createMyLibrary = async (options, registerPermission) => {
+}
 
-  const { permissions }  = options;
-  const additionalPermissions = async loadAdditionalPermissions();
+const createMyLibrary = async ({ registerPermission }) => {
+
+  // Here you could load from the network any additional permissions you need to register.
+  // Call `registerPermission` with each permissions object you want to register.
 
   return {
-    renderAttenuatorFor: (objectId) => {
-      const permission = permissionsMap.get(objectId);
+
+    serialize (permission) {
+      return JSON.stringify(permission);
+    },
+
+    deserialize (permissionString) {
+      // You can return rich objects here, you'll be passed them at the appropriate time.
+      return JSON.parse(permissionString);
+    }
+
+    renderAttenuatorFor: (permission) => {
       switch (permission.type) {
         case 'erc20-token':
           return panel([
@@ -39,13 +51,7 @@ const createMyLibrary = async (options, registerPermission) => {
       },
     },
 
-    serialize: (permission: Permission) => {
-      // Implement deserialization logic
-    },
-
-    deserialize: (serializedPermission: string): Permission => {
-      // Implement deserialization logic
-    },
+    issuePermissionTo: (permission: Permission, recipient: )
 
     validatePermission: (permission: Permission): boolean => {
       // Implement validation logic

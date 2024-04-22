@@ -1,125 +1,71 @@
 import { z } from 'zod';
+import { zPermissionsRequest, zTypeDescriptor } from './types.ts';
 const PERMISSIONS_SNAP_ID = 'TODO_PLACEHOLDER';
 
-// Onchain Permissions Standard interface
-const PermissionsRequest = z.object({
-  permissions: z.array(
-    z.object({
-      sessionAccount: z
-        .object({
-          caip10Address: z.string(),
-        })
-        .optional(),
-      type: z.string(),
-      data: z
-        .object({
-          caip10Address: z.string().optional(),
-          limit: z.string().optional(),
-        })
-        .optional(),
-      required: z.boolean(),
-    }),
-  ),
+// This is a local permissions definition.
+// It is how the kernel encodes its knowledge of a permission.
+// Its type descriptor, and the host that granted it.
+type zPermission = z.object({
+  // An identifier for which snap this permission belongs to:
+  hostId: z.string(),
+
+  // A type used for matching requests:
+  type: zTypeDescriptor,
+
+  // An identifier used for identifying the specific permission to the snap:
+  hostPermissionId: z.string(),
 });
 
-const snapsThatMayAddPermissions = new Set();
+type Permission = z.infer(zPermission);
 
-type PermissionsRequest = z.infer<typeof PermissionsRequest>;
+const zPermissionsOffer = z.object({
+  // Used to propose this permission in response to requests:
+  type: zTypeDescriptor,
 
-type Permission = {
-  type: string;
-  methodName: string;
-  data: Record<string, any>;
-};
-	
-	permissions: [
-		{
+  // Used to represent the permission to the user:
+  proposedName: z.string(),
 
-			sessionAccount?: {
-				 // chainId is required for SCA accounts to work safely,
-				 // and a SCA may specify an array of accepted chainIds:
-				 caip10Address: "ethereum:0x....",
-			},
-			
-		  // Permission is defined by the type of asset it permits moving:
-			type: 'eth-dao-vote',
-			
-			// If excluded, the wallet MAY present the user with a token picker
-			// The wallet may allow the user to add arbitrary additional constraints
-			data?: {
-				caip10Address?: "ethereum:0x....",
-				limit?: "some number string",
-			},
-			required?: "false",
-		},
-	],
-}
+  // Used to call the method on the snap:
+  id: z.string(),
+});
 
-type PermissionsResponse = {
-
-	// The response SHOULD repeat the request's sessionAccount values,
-  // or if they were not included, MUST include an EOA sessionAccount for the requestor.
-  // The signer can also refuse to respond to requests with no sessionAccount.
-	sessionAccount: {...},
-	
-	grantedPolicies: {
-		{
-			
-			type: 'erc20',
-			data: {
-				caip10Address: string,
-				
-				// Specific values describing the terms approved MAY be added by the signer
-				// but may also be excluded, so the dapp SHOULD perform simulations to estimate
-				// whether a given action is actually approved. 
-				limit?: number,
-			},
-		},
-	},
-
-  // The address that can accept a `redeemDelegation` call on the user's behalf:
-	submitToAddress: "0x...",
-	
-	// The bytes that encode the permission:
-	permissionsContext: "some hex bytes",
-	
-	// Only needed if the account hasn't been deployed yet.
-	// The DApp will set this data as the "initCode" field of the UserOp.
-	// TODO: Refine this definition, since: 
-	// A userOp's `initCode` is used for the caller, not an intermediate contract.
-	initCode?: "0x...",
-	
-	// If UpgradeOps are provided, they MUST be sent to the user's account before
-	// attempting performing the desired actions. This allows a non-deployed account
-	// That is upgradable to also have its upgrade path be counterfactual.
-	// TODO: Specify how these upgradeOps are submitted to the contract.
-	upgradeOps?: ["0x...", "0x..."]
-}
+type PermissionsOffer = z.infer(zPermissionsOffer);
 
 // Store for registered permission capabilities
-const permissionCapabilities = new Map<string, Permission[]>();
+const permissions: Permission[] = [];
 
 export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => {
   switch (request.method) {
 
+    // This method is used by snaps to offer its cryptographic abilities as permissions:
+    case 'wallet_offerPermission':
+      const offered = zPermissionsOffer.passthrough().parse(request.params);
+      const permission: Permission = {
+        hostId: origin,
+        type: offered.type,
+        hostPermissionId: offered.id,
+      };
+      // This would be a reasonable place to check for duplicates, but I'm just hackin' right now.
+      permissions.push(permission);
+      return true;
+
+    // This method is used by dapps to request onchain permissions:
     case 'wallet_requestOnchainPermissions':
       // Validate the request against the schema
-      const validatedRequest = PermissionsRequest.parse(request.params);
+      const validatedRequest = zPermissionsRequest.passthrough().parse(request.params);
 
       // Filter and deduplicate permissions
       const relevantPermissions = validatedRequest.permissions.map(requestedPermission => {
-        return [...permissionCapabilities.values()].flat().filter(storedPermission => 
-          storedPermission.type === requestedPermission.type &&
-          requestedPermission.data && 
-          Object.entries(requestedPermission.data).every(([key, value]) =>
-            storedPermission.data[key] === value  
-          )
+        return permissions.filter(storedPermission => 
+
+          // Currently just matches type. Here is where we would add a rich type description system.
+          // Could start by recognizing some extra parameters for known permission types,
+          // But eventually would be great to have some general-purpose type fields.
+          return storedPermission.type.name === requestedPermission.type.name;
         );
       }).flat();
 
-      const uniquePermissions = [...new Set(relevantPermissions.map(p => JSON.stringify(p)))].map(JSON.parse);
-
-      if (uniquePermissions.length === 0) {
+      if (relevantPermissions.length === 0) {
         throw new Error('No matching permissions found');
       }
 
@@ -131,7 +77,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
             name: 'permissions-form',
             children: [
               text('Select a permission to grant:'),
-              ...uniquePermissions.map((permission, index) => 
+              ...relevantPermissions.map((permission, index) => 
                 text(`${index + 1}. ${permission.type} (${JSON.stringify(permission.data)})`)
               ),
               input({
@@ -156,7 +102,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
       });
 
       const selectedIndex = parseInt(result['selected-permission'], 10) - 1;
-      const selectedPermission = uniquePermissions[selectedIndex];
+      const selectedPermission = relevantPermissions[selectedIndex];
 
       if (!selectedPermission) {
         throw new Error('Invalid permission selection');
@@ -172,51 +118,6 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
       });
 
       return permissionsContext;
-
-    case 'wallet_registerAsset':
-      const secondLine = request.params?.proposedName && typeof request.params.proposedName === 'string'
-        : `Offers you a new asset. It suggests the name *${request.params.proposedName}*. These assets will only be as real as their word.`
-      const result = await snap.request({
-        method: "snap_dialog",
-        params: {
-          type: "confirmation",
-          content: panel([
-            heading("New asset offer"),
-            // TODO: Get a petname API that works for snap names too
-            // Or just expand the existing `address` component like this:
-            address(request.origin),
-
-            text(secondLine),
-
-            text(`Or feel free to edit the name:`),
-            input({
-              type: 'text',
-              // TODO: Allow petnames as placeholder texts.
-              // Resolved names must not be accessible to the snap, of course.
-              placeholder: request.params.proposedName || address(request.origin),
-            })
-          ]),
-        },
-      });
-
-      if (result) {
-        snapsThatMayAddPermissions.set(request.origin, true);
-      }
-      
-      const newPermissions = z.array(z.object({
-        type: z.string(),
-        methodName: z.string(),
-        data: z.record(z.any()),
-      })).parse(request.params);
-
-      permissionCapabilities.set(origin, newPermissions);
-      return true;
-
-    case 'wallet_offerPermission':
-      // In this method, a permission and its name could be proposed to the wallet!
-      // We could start by supporting the Onchain Permissions Standard (EVM),
-      // And later add support for additional protocols' permissions right in the wallet.
-
     case 'registerPermissionCapabilities':
     default:
       throw new Error('Method not found.');
