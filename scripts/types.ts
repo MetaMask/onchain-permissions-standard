@@ -12,7 +12,7 @@ export const zAddress = z.object({
   caip10Address: z.string(),
 });
 
-export type Address = z.infer(zSessionAccount);
+export type Address = z.infer<typeof zAddress>;
 
 // Rather than only define permissions by name,
 // We can make this an object and leave room for forward-extensibility.
@@ -30,13 +30,13 @@ export const zRequestedPermission = z.object({
   required: z.boolean(),
 });
 
-export const Permission = z.infer(zRequestedPermission);
+export const Permission = z.infer<typeof zRequestedPermission>;
 
 export const zPermissionsRequest = z.object({
   permissions: z.array(zRequestedPermission),
 });
 
-export const PermissionsRequest = z.infer(zPermissionsRequest);
+export const PermissionsRequest = z.infer<typeof zPermissionsRequest>;
 
 export const zGrantedPolicy = z.object({
   sessionAccount: zAddress,
@@ -47,12 +47,17 @@ export const zGrantedPolicy = z.object({
   }).optional(),
 });
 
+const zUpgradeOp = z.object({
+  target: zAddress,
+  operation: z.string(),
+});
+
 export const zPermissionsResponse = z.object({
   grantedPolicy: zGrantedPolicy,
   submitToAddress: z.string(),
   permissionsContext: z.string(),
   initCode: z.string().optional(),
-  upgradeOps: z.array(z.string()).optional(),
+  upgradeOps: z.array(zUpgradeOp).optional(),
 });
 
-export const PermissionsResponse = z.infer(zPermissionsResponse);
+export const PermissionsResponse = z.infer<typeof zPermissionsResponse>;

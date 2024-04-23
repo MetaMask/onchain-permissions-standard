@@ -181,22 +181,6 @@ const Index = () => {
             disabled={!isMetaMaskReady}
           />
         )}
-        {!installedAccountSnap && (
-          <Card
-            content={{
-              title: '2. Install New Account',
-              description:
-                'Second, install a new account type that knows how to use the permissions system.',
-              button: (
-                <ConnectButton
-                  onClick={requestAccountSnap}
-                  disabled={!isMetaMaskReady}
-                />
-              ),
-            }}
-            disabled={!isMetaMaskReady}
-          />
-        )}
         {shouldDisplayReconnectButton(installedKernelSnap) && (
           <Card
             content={{
@@ -213,6 +197,23 @@ const Index = () => {
             disabled={!installedKernelSnap}
           />
         )}
+        {!installedAccountSnap && (
+          <Card
+            content={{
+              title: '2. Install New Account',
+              description:
+                'Second, install a new account type that knows how to use the permissions system.',
+              button: (
+                <ConnectButton
+                  onClick={requestAccountSnap}
+                  disabled={!isMetaMaskReady}
+                />
+              ),
+            }}
+            disabled={!isMetaMaskReady}
+          />
+        )}
+        
         <Card
           content={{
             title: '3. Request Pudding Access',
