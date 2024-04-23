@@ -23,7 +23,7 @@
 import { OnRpcRequestHandler } from '@metamask/snaps-sdk';
 import { panel, text, form, input, button } from '@metamask/snaps-sdk';
 import { createMyLibrary } from './myLibrary.ts'
-const PERMISSIONS_SNAP_ID = 'npm:@metamask/onchain-permissions-standard';
+const PERMISSIONS_SNAP_ID = '@metamask/onchain-permissions-kernel';
 import { zPermissionsOffer, PermissionsOffer, zPermissionToGrantParams, PermissionToGrantParams } from '../../kernel-snap/src/index.ts';
 
 // IDs must be deterministic, so using a hash to start:

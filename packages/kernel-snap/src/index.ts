@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { zPermissionsRequest, zRequestedPermission, zTypeDescriptor, zAddress } from '../../../scripts/types.ts';
-const PERMISSIONS_SNAP_ID = 'TODO_PLACEHOLDER';
 
 // This is a local permissions definition.
 // It is how the kernel encodes its knowledge of a permission.
