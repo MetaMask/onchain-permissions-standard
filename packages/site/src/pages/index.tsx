@@ -18,6 +18,7 @@ import {
   useRequestSnap,
 } from '../hooks';
 import { isLocalSnap, shouldDisplayReconnectButton } from '../utils';
+import { useState } from 'react';
 
 const Container = styled.div`
   display: flex;
@@ -110,6 +111,7 @@ const Index = () => {
   const requestAccountSnap = useRequestSnap(accountSnapOrigin);
   const invokeKernelSnap = useInvokeSnap(kernelSnapOrigin);
   const invokeAccountSnap = useInvokeSnap(accountSnapOrigin);
+  const { puddingProof, setPuddingProof } = useState(false);
 
   const isMetaMaskReady = isLocalSnap(defaultSnapOrigin)
     ? isFlask
@@ -120,10 +122,16 @@ const Index = () => {
   };
 
   const requestPermission = async (permission: Permission) => {
-    return await invokeKernelSnap({
+    const result = await invokeKernelSnap({
       method: 'wallet_requestOnchainPermission',
       params: permission,
     });
+
+    if (result && result.type.name === 'pudding') {
+      setPuddingProof(result);
+    } else {
+      alert('Permission denied.');
+    }
   }; 
 
   const handleRequestPermissionClick = async () => {
@@ -220,8 +228,8 @@ const Index = () => {
             description:
               'Ask your wallet for pudding permission. More than just proof!',
             button: (
-              <RequestPuddingProofButton onClick={handleSendHelloClick}
-                disabled={!installedSnap}
+              <RequestPuddingProofButton onClick={handleRequestPermissionClick}
+                disabled={!installedKernelSnap}
               />
             ),
           }}
@@ -238,8 +246,8 @@ const Index = () => {
             description:
               'Now the dapp can use the pudding without additional confirmations!',
             button: (
-              <UsePuddingProofButton onClick={handleSendHelloClick}
-                disabled={!installedSnap}
+              <UsePuddingProofButton onClick={handleUsePermissionClick}
+                disabled={!puddingProof}
               />
             ),
           }}
