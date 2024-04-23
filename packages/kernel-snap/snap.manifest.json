@@ -4,14 +4,15 @@
   "proposedName": "Onchain Permissions",
   "repository": {
     "type": "git",
-    "url": "git@github.com:MetaMask/onchain-permissions-standard-snap.git"
+    "url": "https://github.com/MetaMask/onchain-permissions-standard.git"
   },
   "source": {
-    "shasum": "jsTOVbQULyLUbDfDTUfN28ztAQXBf68b5dgpDUmzd5M=",
+    "shasum": "dNDm+cftqIgifnjqpqcEyN2VIuuQU+bUR+M7dIA4u8Y=",
     "location": {
       "npm": {
         "filePath": "dist/bundle.js",
-        "packageName": "snap",
+        "iconPath": "logo.svg",
+        "packageName": "@metamask/onchain-permissions-kernel",
         "registry": "https://registry.npmjs.org/"
       }
     }
@@ -23,7 +24,6 @@
       "snaps": true
     },
     "endowment:page-home": {},
-    "endowment:cronjob": {},
     "endowment:network-access": {},
     "endowment:ethereum-provider": {}
   },

@@ -32,6 +32,8 @@ In development, Gatsby will load environment variables from a file named `.env.d
 
 By default you can use the `SNAP_ORIGIN` variable (used in `src/config/snap.ts`) to define a production origin for you snap (eg. `npm:MyPackageName`). If not defined it will defaults to `local:http://localhost:8080`.
 
+This dual-snap project includes two snap environment variables defined in `.env.development`: `SNAP_ORIGIN` (the kernel snap) on port 8080, and `PERMISSION_SNAP_ORIGIN` (the example, permission-providing snap) on port 8081.
+
 A `.env` file template is available, to use it rename `.env.production.dist` to `.env.production`
 
 To learn more visit [Gatsby documentation](https://www.gatsbyjs.com/docs/how-to/local-development/environment-variables/)

@@ -23,7 +23,6 @@
       "snaps": true
     },
     "endowment:page-home": {},
-    "endowment:cronjob": {},
     "endowment:network-access": {},
     "endowment:ethereum-provider": {}
   },

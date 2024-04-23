@@ -1,4 +1,6 @@
 import styled from 'styled-components';
+import { kernelSnapOrigin, accountSnapOrigin } from '../config';
+import { Permission } from '../../../../scripts/types.ts';
 
 import {
   ConnectButton,
@@ -103,16 +105,39 @@ const ErrorMessage = styled.div`
 
 const Index = () => {
   const { error } = useMetaMaskContext();
-  const { isFlask, snapsDetected, installedSnap } = useMetaMask();
-  const requestSnap = useRequestSnap();
-  const invokeSnap = useInvokeSnap();
+  const { isFlask, snapsDetected, installedSnap, installedKernelSnap, installedAccountSnap } = useMetaMask();
+  const requestKernelSnap = useRequestSnap(kernelSnapOrigin);
+  const requestAccountSnap = useRequestSnap(accountSnapOrigin);
+  const invokeKernelSnap = useInvokeSnap(kernelSnapOrigin);
+  const invokeAccountSnap = useInvokeSnap(accountSnapOrigin);
 
   const isMetaMaskReady = isLocalSnap(defaultSnapOrigin)
     ? isFlask
     : snapsDetected;
 
   const handleSendHelloClick = async () => {
-    await invokeSnap({ method: 'hello' });
+    await invokeKernelSnap({ method: 'hello' });
+  };
+
+  const requestPermission = async (permission: Permission) => {
+    return await invokeKernelSnap({
+      method: 'wallet_requestOnchainPermission',
+      params: permission,
+    });
+  }; 
+
+  const handleRequestPermissionClick = async () => {
+    return requestPermission({
+      sessionAccount: {
+        caip10Address: 'TODO_EMBEDDED_ACCOUNT',
+      },
+      type: 'pudding',
+      justification: "To enable dancing with pudding.",
+    })
+  };
+
+  const handleUsePermissionClick = async () => {
+    await invokeKernelSnap({ method: 'hello' });
   };
 
   return (
@@ -140,15 +165,15 @@ const Index = () => {
             fullWidth
           />
         )}
-        {!installedSnap && (
+        {!installedKernelSnap && (
           <Card
             content={{
-              title: 'Install Kernel',
+              title: '1. Install Kernel',
               description:
                 'Get started by installing the new permissions system.',
               button: (
                 <ConnectButton
-                  onClick={requestSnap}
+                  onClick={requestKernelSnap}
                   disabled={!isMetaMaskReady}
                 />
               ),
@@ -156,15 +181,15 @@ const Index = () => {
             disabled={!isMetaMaskReady}
           />
         )}
-        {!installedSnap && (
+        {!installedAccountSnap && (
           <Card
             content={{
-              title: 'Get New Account',
+              title: '2. Install New Account',
               description:
                 'Second, install a new account type that knows how to use the permissions system.',
               button: (
                 <ConnectButton
-                  onClick={requestSnap}
+                  onClick={requestAccountSnap}
                   disabled={!isMetaMaskReady}
                 />
               ),
@@ -172,7 +197,7 @@ const Index = () => {
             disabled={!isMetaMaskReady}
           />
         )}
-        {shouldDisplayReconnectButton(installedSnap) && (
+        {shouldDisplayReconnectButton(installedKernelSnap) && (
           <Card
             content={{
               title: 'Reconnect',
@@ -180,17 +205,17 @@ const Index = () => {
                 'While connected to a local running snap this button will always be displayed in order to update the snap if a change is made.',
               button: (
                 <ReconnectButton
-                  onClick={requestSnap}
-                  disabled={!installedSnap}
+                  onClick={requestKernelSnap}
+                  disabled={!installedKernelSnap}
                 />
               ),
             }}
-            disabled={!installedSnap}
+            disabled={!installedKernelSnap}
           />
         )}
         <Card
           content={{
-            title: 'Request Permissions',
+            title: '3. Request Pudding Access',
             description:
               'Ask your wallet for pudding permission. More than just proof!',
             button: (
@@ -208,7 +233,7 @@ const Index = () => {
         />
         <Card
           content={{
-            title: 'Use Pudding',
+            title: '4. Use Pudding',
             description:
               'Now the dapp can use the pudding without additional confirmations!',
             button: (

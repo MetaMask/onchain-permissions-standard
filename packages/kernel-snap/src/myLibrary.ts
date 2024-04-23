@@ -23,29 +23,23 @@ const createMyLibrary = async ({ registerPermission }) => {
 
     renderAttenuatorFor: (permission) => {
       switch (permission.type) {
-        case 'erc20-token':
+        case 'pudding':
           return panel([
-            text('What is the maximum allowance to grant?'),
+            text('How many dollars worth of pudding would you like to grant?'),
             input({
               name: 'allowance',
               type: 'number',
-              decimals: 18,
-              placeholder: '1',
-            }),
-            text('Expiration time?'),
-            input({
-              name: 'expiration',
-              type: 'time',
-              placeholder: Date.now() + ONE_WEEK,
+              decimals: 2,
+              placeholder: '200',
             }),
             text('Anything else? Just for the record ;)'),
             input({
-              name: 'llmInput',
+              name: 'open-terms',
               type: 'text',
-              placeholder: Date.now() + ONE_WEEK,
+              placeholder: 'Express yourself!',
             }),
           ]);
-          
+        
           default:
             // This would imply a kernel error, please let us know about it:
             throw new Error('Kernel Error: Requested attenuator not defined. Please inform MetaMask.');

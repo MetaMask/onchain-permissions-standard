@@ -10,7 +10,7 @@ import { useRequest } from './useRequest';
  * @returns The informations.
  */
 export const useMetaMask = () => {
-  const { provider, setInstalledSnap, installedSnap } = useMetaMaskContext();
+  const { provider, setInstalledSnap, installedSnap, installedKernelSnap, setInstalledKernelSnap, installedAccountSnap, setInstalledAccountSnap } = useMetaMaskContext();
   const request = useRequest();
 
   const [isFlask, setIsFlask] = useState(false);
@@ -39,6 +39,8 @@ export const useMetaMask = () => {
     })) as GetSnapsResponse;
 
     setInstalledSnap(snaps[defaultSnapOrigin] ?? null);
+    setInstalledKernelSnap(snaps[defaultSnapOrigin] ?? null);
+    setInstalledAccountSnap(snaps[accountSnapOrigin] ?? null);
   };
 
   useEffect(() => {
@@ -52,5 +54,5 @@ export const useMetaMask = () => {
     detect().catch(console.error);
   }, [provider]);
 
-  return { isFlask, snapsDetected, installedSnap, getSnap };
+  return { isFlask, snapsDetected, installedSnap, getSnap, installedKernelSnap, installedAccountSnap };
 };

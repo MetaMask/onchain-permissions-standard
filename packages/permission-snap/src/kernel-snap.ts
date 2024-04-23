@@ -82,6 +82,8 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
         return false;
       }
 
+      const permission: Permission = zPermission.passthrough().parse(request.params);
+
       // Present the user with the list of permissions to choose from
       const interfaceId = await snap.request({
         method: 'snap_createInterface',
@@ -89,7 +91,12 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
           ui: form({
             name: 'permissions-form',
             children: [
-              text('Select a permission to grant:'),
+              text(`The site at ${origin} requests access to a **${permission.type}** permission.`),
+              permission.justification ? panel([
+                heading("The requestor provides this justification for the request:"),
+                text(permission.justification),
+              ]) : null,
+              text('Select a permission to grant, or click cancel:'),
               ...relevantPermissions.map((permission, index) => 
                 text(`${index + 1}. ${address(permission.hostId)}: ${permission.proposedName}`)
               ),
