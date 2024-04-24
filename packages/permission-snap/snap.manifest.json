@@ -7,7 +7,7 @@
     "url": "https://github.com/MetaMask/onchain-permissions-standard.git"
   },
   "source": {
-    "shasum": "mVnWYi7nVGShr6jUfVorCG2ZrMtzW1O58UUiiObV/jo=",
+    "shasum": "2o0tvDvO62jNlRb2Ac1rj7qyifnvDna1int+4IU3fF4=",
     "location": {
       "npm": {
         "filePath": "dist/bundle.js",
@@ -22,6 +22,9 @@
     "endowment:rpc": {
       "dapps": true,
       "snaps": true
+    },
+    "wallet_snap": {
+      "local:http://localhost:8080": {}
     },
     "endowment:lifecycle-hooks": {}
   },

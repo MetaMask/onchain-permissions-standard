@@ -8,12 +8,14 @@
  */
 export const defaultSnapOrigin =
   // eslint-disable-next-line no-restricted-globals
-  process.env.SNAP_ORIGIN ?? `local:http://localhost:8080`;
+  `local:http://localhost:8080`;
+  //process.env.SNAP_ORIGIN ?? `local:http://localhost:8080`;
 
 export const kernelSnapOrigin = defaultSnapOrigin;
 
 export const accountSnapOrigin =
   // eslint-disable-next-line no-restricted-globals
-  process.env.ACCOUNT_SNAP_ORIGIN ?? `local:http://localhost:8081`;
+  `local:http://localhost:8081`;
+  // process.env.ACCOUNT_SNAP_ORIGIN ?? `local:http://localhost:8081`;
 
 

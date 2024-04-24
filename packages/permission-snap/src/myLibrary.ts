@@ -1,9 +1,12 @@
+import { z } from 'zod';
 import { zSessionAccount, SessionAccount, zTypeDescriptor } from '../../../scripts/types.ts';
 
 // We can locally define this however we want:
-const Permission = z.object({
+const zPermission = z.object({
   type: zTypeDescriptor,
 });
+
+type Permission = z.infer<typeof zPermission>;
 
 const defaultPermissions = [
   {
@@ -21,6 +24,7 @@ const createMyLibrary = async ({ registerPermission }: { registerPermission: (pe
   async function onInstall () {
     console.log('Permission snap registering initial permissions...')
     await Promise.all(defaultPermissions.map((permission) => {
+      console.log('registering permission', permission);
       return registerPermission(permission);
     }))
     .catch((err) => {

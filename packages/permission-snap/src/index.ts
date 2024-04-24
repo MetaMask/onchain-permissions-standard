@@ -23,7 +23,7 @@ console.log('before anything');
 import { OnRpcRequestHandler } from '@metamask/snaps-sdk';
 import { panel, text, form, input, button } from '@metamask/snaps-sdk';
 import { createMyLibrary } from './myLibrary.ts'
-const PERMISSIONS_SNAP_ID = '@metamask/onchain-permissions-kernel';
+const PERMISSIONS_SNAP_ID = 'local:http://localhost:8080';
 import { zPermissionsOffer, PermissionsOffer, zPermissionToGrantParams, PermissionToGrantParams } from '../../kernel-snap/src/index.ts';
 
 console.log('Starting permission snap');
@@ -34,17 +34,18 @@ const permissionsMap: Map<string, Permission> = new Map();
 type AccountSettings = {
   permissions: Array<unknown>,
 }
-const settings: AccountSettings = await getPersistedSettings() || createFreshSettings();
-
+const settings = {
+  permissions: [],
+};
 
 // Attn SCA devs:
 // This is the library you implement for YOUR contract account.
 // Feel free to just modify the example library!
 console.log('Creating my library');
 const myLibraryPromise = Promise.all(settings.permissions.map(async (permission) => {
-  console.log('getting id');
-  const permId = await getIdFor(permission);
-  permissionsMap.set(permId, permission);
+    console.log('getting id');
+    const permId = await getIdFor(permission);
+    permissionsMap.set(permId, permission);
 }))
 .then(() => {
   return createMyLibrary({ registerPermission });
@@ -56,7 +57,10 @@ const myLibraryPromise = Promise.all(settings.permissions.map(async (permission)
 export const onInstall: OnInstallHandler = async () => {
   console.log('Permission snap install hook called.')
   const myLibrary = await myLibraryPromise;
-  myLibrary && myLibrary.onInstall && myLibrary.onInstall();
+  console.log('my library is ready, calling onInstall');
+  if (myLibrary && myLibrary.onInstall) {
+    myLibrary.onInstall();
+  }
 };
 
 export const onUpdate: OnUpdateHandler = async () => {
@@ -84,21 +88,23 @@ async function getIdFor(permission) {
 
 async function registerPermission (permission: Permission) {
   try {
-    await snap.request({
-      method: "wallet_requestSnaps",
-      params: {
-        "npm:@metamask/onchain-permissions-system": {},
-      },
-    });
-    
+    console.log('attempting to register', permission);
+    const permId = await getIdFor(permission);
     // Invoke the "hello" JSON-RPC method exposed by the Snap.
+    const offer: PermissionsOffer = {
+      id: permId,
+      proposedName: 'The Giant Pile of Pudding',
+      type: permission.type,
+    }
+
+    console.log('we have an offer', offer);
     const response = await snap.request({
       method: "wallet_invokeSnap",
       params: {
-        snapId: "npm:@metamask/onchain-permissions-system",
+        snapId: PERMISSIONS_SNAP_ID,
         request: {
-          method: "wallet_registerAsset",
-          params: permission,
+          method: "wallet_offerOnchainPermission",
+          params: offer,
         },
       },
     });
@@ -107,18 +113,26 @@ async function registerPermission (permission: Permission) {
   }
 }
 
-async function getPersistedSettings () : AccountSettings {
-  const persistedData = await snap.request({
-    method: "snap_manageState",
-    params: { operation: "get" },
-  });
-  return persistedData;
+async function getPersistedSettings(): Promise<AccountSettings | null> {
+  console.log('retrieving persisted state');
+  try {
+    const persistedData = await snap.request({
+      method: "snap_manageState",
+      params: { operation: "get" },
+    });
+    console.log('persisted state:', persistedData);
+    return persistedData as AccountSettings;
+  } catch (error) {
+    console.error('Error retrieving persisted state:', error);
+    return null;
+  }
 }
 
-function createFreshSettings () : AccountSettings {
-  return JSON.stringify({
+async function createFreshSettings(): Promise<AccountSettings> {
+  console.log('creating fresh settings');
+  return {
     permissions: [],
-  });
+  };
 }
 
 export const onRpcRequest: OnRpcRequestHandler = async ({

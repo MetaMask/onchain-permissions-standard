@@ -1,6 +1,6 @@
 {
   "name": "@metamask/onchain-permissions-kernel",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "An implementation of the latest draft of the Onchain Permissions Standard as a MetaMask Snap.",
   "repository": {
     "type": "git",
