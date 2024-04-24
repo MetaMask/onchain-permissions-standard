@@ -5,12 +5,34 @@ const Permission = z.object({
   type: zTypeDescriptor,
 });
 
+const defaultPermissions = [
+  {
+    type: { name: 'Puddin' },
+    data: {
+      proof: `Oh, it's in here alright.`,
+    }
+  }
+];
+
 const createMyLibrary = async ({ registerPermission }: { registerPermission: (permission: any) => void }) => {
 
   // Here you could load from the network any additional permissions you need to register.
   // Call `registerPermission` with each permissions object you want to register.
+  async function onInstall () {
+    console.log('Permission snap registering initial permissions...')
+    await Promise.all(defaultPermissions.map((permission) => {
+      return registerPermission(permission);
+    }))
+    .catch((err) => {
+      console.log('Problem registering permissions.', err);
+    });
+  }
 
   return {
+
+    onInstall,
+
+    onUpdate: null,
 
     serialize(permission: any) {
       return JSON.stringify(permission);
@@ -23,7 +45,7 @@ const createMyLibrary = async ({ registerPermission }: { registerPermission: (pe
 
     renderAttenuatorFor: (permission: any) => {
       switch (permission.type) {
-        case 'pudding':
+        case 'Puddin':
           return panel([
             text('How many dollars worth of pudding?'),
             input({
@@ -51,9 +73,9 @@ const createMyLibrary = async ({ registerPermission }: { registerPermission: (pe
             }),
             text('Anything else? Just for the record ;)'),
             input({
-              name: 'llmInput',
+              name: 'freeText',
               type: 'text',
-              placeholder: Date.now() + ONE_WEEK,
+              placeholder: '...',
             }),
           ]);
           

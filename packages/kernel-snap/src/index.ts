@@ -60,7 +60,11 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
     // Starting with a singular permission request for simplicity of implementation.
     case 'wallet_requestOnchainPermission':
       // Validate the request against the schema
-      const requestedPermission = zRequestedPermission.passthrough().parse(request.params);
+      try {
+        const requestedPermission: RequestedPermission = zRequestedPermission.passthrough().parse(request.params);
+      } catch (err) {
+        console.log('Validation error: ', err);
+      }
 
       // Filter and deduplicate permissions
       const relevantPermissions = permissions.filter((storedPermission) => {
@@ -71,7 +75,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
       });
 
       if (relevantPermissions.length === 0) {
-
+        console.log('no relevant permissions found');
         // TODO: Here we should return a proper JSON-RPC error.
         // Might be nice to obscure whether the user declined or didn't have it.
         // Maybe add a delay to prevent brute force fingerprinting,
@@ -79,8 +83,6 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
         // Ensuring a maximally human-like reaction time and obscuring the reason.
         return false;
       }
-
-      permission: Permission = zPermission.passthrough().parse(request.params);
 
       // Present the user with the list of permissions to choose from
       const interfaceId = await snap.request({
@@ -133,7 +135,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
       // for rendering its attenuator UI after the permission has been selected, as part of the granting process.
       const grantParams: PermissionToGrantParams = {
         permissionId: permission.hostPermissionId,
-        sessionAccount: requestedPermission.sessionAccount,
+        sessionAccount: permission.sessionAccount,
       };
       const permissionsResponse: PermissionsResponse = zPermissionsResponse.passthrough().parse(await snap.request({
         method: "wallet_invokeSnap",

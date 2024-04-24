@@ -30,7 +30,7 @@ export const zRequestedPermission = z.object({
     .object()
     .optional(),
 
-  required: z.boolean(),
+  required: z.boolean().optional(),
 });
 
 export const Permission = z.infer<typeof zRequestedPermission>;

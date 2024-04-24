@@ -1,7 +1,7 @@
 {
-  "name": "account-snap",
-  "version": "0.1.2",
-  "description": "An onchain permissions standard account snap",
+  "name": "@metamask/example-permission-snap",
+  "version": "0.1.0",
+  "description": "An example snap that provides permissions to the onchain permissions standard kernel.",
   "repository": {
     "type": "git",
     "url": "https://github.com/MetaMask/onchain-permissions-standard.git"

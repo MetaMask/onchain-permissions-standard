@@ -26,6 +26,7 @@ import { createMyLibrary } from './myLibrary.ts'
 const PERMISSIONS_SNAP_ID = '@metamask/onchain-permissions-kernel';
 import { zPermissionsOffer, PermissionsOffer, zPermissionToGrantParams, PermissionToGrantParams } from '../../kernel-snap/src/index.ts';
 
+
 // IDs must be deterministic, so using a hash to start:
 const permissionsMap: Map<string, Permission> = new Map();
 
@@ -37,7 +38,18 @@ const settings: AccountSettings = await getPersistedSettings() || createFreshSet
 // Attn SCA devs:
 // This is the library you implement for YOUR contract account.
 // Feel free to just modify the example library!
-const myLibrary = createMyLibrary({ registerPermission });
+const myLibraryPromise = createMyLibrary({ registerPermission });
+
+export const onInstall: OnInstallHandler = async () => {
+  console.log('Permission snap install hook called.')
+  const myLibrary = await myLibraryPromise;
+  myLibrary?.onInstall();
+};
+
+export const onUpdate: OnUpdateHandler = async () => {
+  const myLibrary = await myLibraryPromise;
+  myLibrary?.onUpdate();
+};
 
 settings.permissions.forEach(async (permission) => {
   const permId = await getIdFor(permission);
@@ -62,24 +74,28 @@ async function getIdFor(permission) {
 }
 
 async function registerPermission (permission: Permission) {
-  await window.ethereum.request({
-    method: "wallet_requestSnaps",
-    params: {
-      "npm:@metamask/onchain-permissions-system": {},
-    },
-  });
-  
-  // Invoke the "hello" JSON-RPC method exposed by the Snap.
-  const response = await window.ethereum.request({
-    method: "wallet_invokeSnap",
-    params: {
-      snapId: "npm:@metamask/onchain-permissions-system",
-      request: {
-        method: "wallet_registerAsset",
-        params: permission,
+  try {
+    await snap.request({
+      method: "wallet_requestSnaps",
+      params: {
+        "npm:@metamask/onchain-permissions-system": {},
       },
-    },
-  });
+    });
+    
+    // Invoke the "hello" JSON-RPC method exposed by the Snap.
+    const response = await snap.request({
+      method: "wallet_invokeSnap",
+      params: {
+        snapId: "npm:@metamask/onchain-permissions-system",
+        request: {
+          method: "wallet_registerAsset",
+          params: permission,
+        },
+      },
+    });
+  } catch (err) {
+    console.log('registering permission gave', err);
+  }
 }
 
 async function getPersistedSettings () : AccountSettings {
