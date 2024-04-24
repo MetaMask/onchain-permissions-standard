@@ -60,10 +60,10 @@ export const onInstall: OnInstallHandler = async () => {
 };
 
 export const onUpdate: OnUpdateHandler = async () => {
+  console.log('Permission snap onUpdate hook called');
   const myLibrary = await myLibraryPromise;
   myLibrary && myLibrary.onUpdate && myLibrary.onUpdate();
 };
-
 
 async function getIdFor(permission) {
   const permissionString = JSON.stringify(permission);

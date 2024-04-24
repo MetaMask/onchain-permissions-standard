@@ -7,7 +7,7 @@
     "url": "https://github.com/MetaMask/onchain-permissions-standard.git"
   },
   "source": {
-    "shasum": "v+AmsUOcOFzbd/88h3YpfbUuJ5vCOjTrHz47m/jrnto=",
+    "shasum": "mVnWYi7nVGShr6jUfVorCG2ZrMtzW1O58UUiiObV/jo=",
     "location": {
       "npm": {
         "filePath": "dist/bundle.js",
@@ -23,9 +23,6 @@
       "dapps": true,
       "snaps": true
     },
-    "endowment:page-home": {},
-    "endowment:network-access": {},
-    "endowment:ethereum-provider": {},
     "endowment:lifecycle-hooks": {}
   },
   "manifestVersion": "0.1"
