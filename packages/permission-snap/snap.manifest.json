@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "An example Snap for demonstrating interfacing with the Onchain Permissions snap.",
   "proposedName": "Demo Account",
   "repository": {
@@ -7,7 +7,7 @@
     "url": "https://github.com/MetaMask/onchain-permissions-standard.git"
   },
   "source": {
-    "shasum": "Kysk0xVFerq+gmilFbxjgy0RqmWbRkOJuw1IQYAKffs=",
+    "shasum": "JZebDWb4fp9tDiy/f3TFfoRDT2lORsD0BANs19ttFEo=",
     "location": {
       "npm": {
         "filePath": "dist/bundle.js",

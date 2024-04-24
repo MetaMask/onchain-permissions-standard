@@ -139,8 +139,10 @@ const Index = () => {
       sessionAccount: {
         caip10Address: 'TODO_EMBEDDED_ACCOUNT',
       },
-      type: 'pudding',
-      justification: "To enable dancing with pudding.",
+      type: {
+        name: 'Puddin',
+      },
+      justification: `You don't need to worry about that... Shhhh...`,
     })
   };
 
@@ -205,7 +207,8 @@ const Index = () => {
             disabled={!installedKernelSnap}
           />
         )}
-        {!installedAccountSnap && (
+
+       {!installedAccountSnap && (
           <Card
             content={{
               title: '2. Install New Account',
@@ -219,6 +222,23 @@ const Index = () => {
               ),
             }}
             disabled={!isMetaMaskReady}
+          />
+        )}
+
+        {!!installedAccountSnap && (
+          <Card
+            content={{
+              title: '2: Pudding Account Installed',
+              description:
+                'Second, install a new account type that knows how to use the permissions system.',
+              button: (
+                <ConnectButton
+                  onClick={requestAccountSnap}
+                  disabled={!isMetaMaskReady}
+                />
+              )
+            }}
+            disabled={true}
           />
         )}
         

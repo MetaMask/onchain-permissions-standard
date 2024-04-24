@@ -24,9 +24,12 @@ export const zRequestedPermission = z.object({
   sessionAccount: zAddress,
   type: zTypeDescriptor,
   justification: z.string().optional(),
+
+  // Data is specific to this `type`, and will be interpreted by the permission's provider
   data: z
     .object()
     .optional(),
+
   required: z.boolean(),
 });
 
@@ -41,10 +44,10 @@ export const PermissionsRequest = z.infer<typeof zPermissionsRequest>;
 export const zGrantedPolicy = z.object({
   sessionAccount: zAddress,
   type: zTypeDescriptor,
-  data: z.object({
-    caip10Address: z.string(),
-    limit: z.number().optional(),
-  }).optional(),
+
+  // Data can vary type by type,
+  // Is provided directly from the permission's provider.
+  data: z.object().optional(),
 });
 
 const zUpgradeOp = z.object({

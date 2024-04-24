@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "An example Snap written in TypeScript.",
   "proposedName": "Onchain Permissions",
   "repository": {
@@ -7,7 +7,7 @@
     "url": "https://github.com/MetaMask/onchain-permissions-standard.git"
   },
   "source": {
-    "shasum": "9ElmIuPHqjJn+47tQHqnh8YIkZckhFUJK43yX4PAxjU=",
+    "shasum": "ynptAcd2kVbOEp22RM+asKflBEuB8gA01DAyVh+q6Ig=",
     "location": {
       "npm": {
         "filePath": "dist/bundle.js",
