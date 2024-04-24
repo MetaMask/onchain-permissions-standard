@@ -19,13 +19,14 @@
  * The permission system kernel is also implemented as a snap.
  * You can view its source code at `kernel-snap.ts`.
  */
-
+console.log('before anything');
 import { OnRpcRequestHandler } from '@metamask/snaps-sdk';
 import { panel, text, form, input, button } from '@metamask/snaps-sdk';
 import { createMyLibrary } from './myLibrary.ts'
 const PERMISSIONS_SNAP_ID = '@metamask/onchain-permissions-kernel';
 import { zPermissionsOffer, PermissionsOffer, zPermissionToGrantParams, PermissionToGrantParams } from '../../kernel-snap/src/index.ts';
 
+console.log('Starting permission snap');
 
 // IDs must be deterministic, so using a hash to start:
 const permissionsMap: Map<string, Permission> = new Map();
@@ -35,26 +36,34 @@ type AccountSettings = {
 }
 const settings: AccountSettings = await getPersistedSettings() || createFreshSettings();
 
+
 // Attn SCA devs:
 // This is the library you implement for YOUR contract account.
 // Feel free to just modify the example library!
-const myLibraryPromise = createMyLibrary({ registerPermission });
+console.log('Creating my library');
+const myLibraryPromise = Promise.all(settings.permissions.map(async (permission) => {
+  console.log('getting id');
+  const permId = await getIdFor(permission);
+  permissionsMap.set(permId, permission);
+}))
+.then(() => {
+  return createMyLibrary({ registerPermission });
+})
+.catch((err) => {
+  console.log('Problem initializing my library', err);
+});
 
 export const onInstall: OnInstallHandler = async () => {
   console.log('Permission snap install hook called.')
   const myLibrary = await myLibraryPromise;
-  myLibrary?.onInstall();
+  myLibrary && myLibrary.onInstall && myLibrary.onInstall();
 };
 
 export const onUpdate: OnUpdateHandler = async () => {
   const myLibrary = await myLibraryPromise;
-  myLibrary?.onUpdate();
+  myLibrary && myLibrary.onUpdate && myLibrary.onUpdate();
 };
 
-settings.permissions.forEach(async (permission) => {
-  const permId = await getIdFor(permission);
-  permissionsMap.set(permId, permission);
-});
 
 async function getIdFor(permission) {
   const permissionString = JSON.stringify(permission);
