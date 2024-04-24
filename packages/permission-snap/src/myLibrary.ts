@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { zSessionAccount, SessionAccount, zTypeDescriptor } from '../../../scripts/types.ts';
+import { UserInputEventType, OnUserInputHandler, OnRpcRequestHandler, panel, heading, text, form, input, button } from '@metamask/snaps-sdk';
 
 // We can locally define this however we want:
 const zPermission = z.object({
@@ -48,25 +49,25 @@ const createMyLibrary = async ({ registerPermission }: { registerPermission: (pe
     },
 
     renderAttenuatorFor: (permission: any) => {
-      switch (permission.type) {
+      switch (permission.type.name) {
         case 'Puddin':
           return panel([
+            heading('Puddin Permission'),
             text('How many dollars worth of pudding?'),
             input({
               name: 'allowance',
               type: 'number',
-              decimals: 2,
               placeholder: '240',
             }),
           ]);
 
         case 'erc20-token':
           return panel([
+            heading('Token Allowance'),
             text('What is the maximum allowance to grant?'),
             input({
               name: 'allowance',
               type: 'number',
-              decimals: 18,
               placeholder: '1',
             }),
             text('Expiration time?'),
@@ -85,18 +86,27 @@ const createMyLibrary = async ({ registerPermission }: { registerPermission: (pe
           
         default:
           // This would imply a kernel error, please let us know about it:
-          throw new Error('Kernel Error: Requested attenuator not defined. Please inform MetaMask.');
+          return panel([
+            heading('Unable to Protect'),
+            text('We are not able to limit your exposure to this asset if you agree to grant it.'),
+            text('Grant access to this asset to the requesting site anyway?'),
+          ]);
       }
     },
 
-    issuePermissionTo: async (permission: any, attenuatorResult: any, recipient: SessionAccount) => {
+    issuePermissionTo: async (permission: any, attenuatorResult: any, recipient: SessionAccount): PermissionsResponse => {
       return {
-        sessionAccount: recipient,
-        type: permission.type, // It's just parroting right now, not thinking.
-        data: {
-          caip10Address: 'placeholder-walderoo',
-          foo: 'bar!', // Specific to the type that was requested.
-        },
+        submitToAddress: 'MY-INVOKER-OR-ENTRYPOINT',
+        permissionsContext: 'THE-PUDDING-PROOF',
+
+        grantedPolicy: {
+          sessionAccount: recipient,
+          type: permission.type, // It's just parroting right now, not thinking.
+          data: {
+            caip10Address: 'placeholder-walderoo',
+            foo: 'bar!', // Specific to the type that was requested.
+          },
+        }
       };
     },
 

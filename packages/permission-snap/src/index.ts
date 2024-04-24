@@ -20,11 +20,12 @@
  * You can view its source code at `kernel-snap.ts`.
  */
 console.log('before anything');
-import { OnRpcRequestHandler } from '@metamask/snaps-sdk';
-import { panel, text, form, input, button } from '@metamask/snaps-sdk';
+import { UserInputEventType, OnUserInputHandler, OnRpcRequestHandler, panel, heading, text, form, input, button } from '@metamask/snaps-sdk';
 import { createMyLibrary } from './myLibrary.ts'
 const PERMISSIONS_SNAP_ID = 'local:http://localhost:8080';
 import { zPermissionsOffer, PermissionsOffer, zPermissionToGrantParams, PermissionToGrantParams } from '../../kernel-snap/src/index.ts';
+
+let attenuatorSelections = {};
 
 console.log('Starting permission snap');
 
@@ -90,6 +91,7 @@ async function registerPermission (permission: Permission) {
   try {
     console.log('attempting to register', permission);
     const permId = await getIdFor(permission);
+    permissionsMap.set(permId, permission);
     // Invoke the "hello" JSON-RPC method exposed by the Snap.
     const offer: PermissionsOffer = {
       id: permId,
@@ -145,40 +147,45 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
   if (origin !== PERMISSIONS_SNAP_ID) {
     throw new UnauthorizedError(`Method ${request.method} not authorized for origin ${origin}.`);
   }
-
+  console.log('received method', request.method);
   // These are the internal methods that the permission system kernel requires.
   // The permission system kernel is responsible for handling the permissions request.
   switch (request.method) {
     case "permissionProvider_grantAttenuatedPermission":
+      console.log('kernel requested permission approval', request.params);
       const grantParams: PermissionToGrantParams = zPermissionToGrantParams.parse(request.params);
+      console.log('validated', grantParams);
       const { permissionId } = request.params;
+      console.log('from permissions map', permissionsMap);
       const permission = permissionsMap.get(permissionId);
       if (!permission) return false;
+      console.log('rendering attenuator ui...')
+      const myLibrary = await myLibraryPromise;
       const attenuatorUI = myLibrary.renderAttenuatorFor(permission);
+      console.log('attenuator ui rendered', attenuatorUI);
       const interfaceId = await snap.request({
         method: 'snap_createInterface',
         params: {
-          ui: form({
-            name: 'attenuator-form',
-            children:[
-              text('Customize the permission before granting it to reduce your risk.'),
-              attenuatorUI,
-            ],
-          }),
+          ui: panel([
+            heading('Customize Terms'),
+            attenuatorUI,
+          ]),
         },
       });
 
-      const result = await snap.request({
+      await snap.request({
         method: 'snap_dialog',
         params: {
-          type: 'Alert',
+          type: 'confirmation',
           id: interfaceId,
         },
       });
 
-      console.log('Attenuator result:', result); // I suspect I'm guessing the response type wrong.
-      const attenuatorResults = result['attenuator-form'];
-      return myLibrary.issuePermissionTo(permission, attenuatorResults, grantParams.sessionAccount);
+      const attenuatorResults = attenuatorSelections;
+      console.log('Attenuator result:', attenuatorResults); // I suspect I'm guessing the response type wrong.
+      const permissionsResponse: PermissionsResponse = myLibrary.issuePermissionTo(permission, attenuatorResults, grantParams.sessionAccount);
+      console.log('response prepared', permissionsResponse);
+      return permissionsResponse;
 
     // TODO: Add ERC-7679 support:
     case 'eth_sendBatchTransaction':
@@ -197,4 +204,10 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
     default:
       throw new Error("Method not found.");
   }
+};
+
+export const onUserInput: OnUserInputHandler = async ({ id, event }) => {
+  console.log('On user input called', { id, event });
+  console.dir({ id, event });
+  attenuatorSelections[event.name] = event.value;
 };

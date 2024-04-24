@@ -1,6 +1,8 @@
 import { z } from 'zod';
-import { zPermissionsRequest, zRequestedPermission, zTypeDescriptor, zAddress } from '../../../scripts/types.ts';
-import { panel, heading, copyable, text, form, row, input, button } from '@metamask/snaps-sdk';
+import { zPermissionsRequest, zRequestedPermission, zPermissionsResponse, PermissionsResponse, zTypeDescriptor, zAddress } from '../../../scripts/types.ts';
+import { UserInputEventType, OnUserInputHandler, panel, heading, copyable, text, form, row, input, button } from '@metamask/snaps-sdk';
+
+let selectedPermissionValue = null;
 
 // This is a local permissions definition.
 // It is how the kernel encodes its knowledge of a permission.
@@ -152,7 +154,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
       console.log('interface build, trying', interfaceId);
       let result;
       try {
-        result = await snap.request({
+        await snap.request({
           method: 'snap_dialog',
           params: {
             type: 'confirmation',
@@ -164,8 +166,10 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
       }
 
       // Get the user's selection:
-      const selectedIndex = parseInt(result['selected-permission'], 10) - 1;
-      const selectedPermission = relevantPermissions[selectedIndex];
+      console.log('selected permission value', selectedPermissionValue);
+      const selectedIndex = parseInt(selectedPermissionValue) - 1;
+      console.log('index ', selectedIndex);
+      const selectedPermission: Permission = relevantPermissions[selectedIndex];
       console.log('user selected', selectedPermission);
 
       if (!selectedPermission) {
@@ -178,24 +182,44 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
       // for rendering its attenuator UI after the permission has been selected, as part of the granting process.
       console.log('Requesting approval from permission provider');
       const grantParams: PermissionToGrantParams = {
-        permissionId: permission.hostPermissionId,
-        sessionAccount: permission.sessionAccount,
+        permissionId: selectedPermission.hostPermissionId,
+        sessionAccount: requestedPermission.sessionAccount,
       };
-      const permissionsResponse: PermissionsResponse = zPermissionsResponse.passthrough().parse(await snap.request({
-        method: "wallet_invokeSnap",
-        params: {
-          snapId: permission.hostId,
-          request: {
-            method: "permissionProvider_grantAttenuatedPermission",
-            params: grantParams,
-          },
-        },
-      }));
+      console.log('requesting permission');
+      try {
 
-      console.log('Created permission response to return to dapp', permissionsResponse);
-      return permissionsResponse;
+        const rawResponse = await snap.request({
+          method: "wallet_invokeSnap",
+          params: {
+            snapId: selectedPermission.hostId,
+            request: {
+              method: "permissionProvider_grantAttenuatedPermission",
+              params: grantParams,
+            },
+          },
+        });
+        console.log('raw response', rawResponse);
+        const permissionsResponse: PermissionsResponse = zPermissionsResponse.passthrough()
+        .parse(rawResponse);
+        console.log('validated response');
+
+        console.log('Created permission response to return to dapp', permissionsResponse);
+        return permissionsResponse;
+      } catch (err) {
+        console.log('Problem getting approval from permissions provider', err);
+        console.trace(err);
+      }
 
     default:
       throw new Error('Method not found.');
+  }
+};
+
+export const onUserInput: OnUserInputHandler = async ({ id, event }) => {
+  console.log('On user input called', { id, event });
+  console.dir({ id, event });
+  if (event.name === 'selected-permission') {
+    console.log("The submitted permission values are", event.value);
+    selectedPermissionValue = event.value;
   }
 };
