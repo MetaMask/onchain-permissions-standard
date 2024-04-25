@@ -18,6 +18,7 @@ export type Address = z.infer<typeof zAddress>;
 // We can make this an object and leave room for forward-extensibility.
 export const zTypeDescriptor = z.object({
   name: z.string(),
+  description: z.string().optional(),
 });
 
 export const zRequestedPermission = z.object({
@@ -54,24 +55,7 @@ const zUpgradeOp = z.object({
   target: zAddress,
   operation: z.string(),
 });
-/*
- {
-  "submitToAddress": "MY-INVOKER-OR-ENTRYPOINT",
-  "permissionsContext": "THE-PUDDING-PROOF",
-  "grantedPolicy": {
-    "sessionAccount": {
-      "caip10Address": "TODO_EMBEDDED_ACCOUNT"
-    },
-    "type": {
-      "name": "Puddin"
-    },
-    "data": {
-      "caip10Address": "placeholder-walderoo",
-      "foo": "bar!"
-    }
-  }
-}
-*/
+
 export const zPermissionsResponse = z.object({
   grantedPolicy: zGrantedPolicy,
   submitToAddress: zAddress,

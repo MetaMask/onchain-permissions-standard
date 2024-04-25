@@ -99,6 +99,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
         const ui = panel([
           heading('Permission Request'),
           text(`The site at ${origin} requests access to **${requestedPermission.type.name}**`),
+
           requestedPermission.justification ? panel([
             heading("Their justification:"),
             copyable(requestedPermission.justification),
@@ -129,6 +130,8 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
       let interfaceId;
       try {
 
+        log(relevantPermissions[0])
+        const permissionsDescription = relevantPermissions[0].type.description;
 
         const ui = panel([
           heading('Permission Request'),
@@ -137,6 +140,8 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
             heading("Their justification:"),
             copyable(requestedPermission.justification),
           ]) : null,
+          text(`That permission grants:`),
+          copyable(relevantPermissions[0].type.description),
           panel([
             heading('Your Inventory'),
             ...relevantPermissions.map((permission, index) => {

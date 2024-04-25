@@ -36,7 +36,8 @@ const permissionsMap: Map<string, Permission> = new Map();
 type AccountSettings = {
   permissions: Array<unknown>,
 }
-const settings = {
+
+const settings: { permissions: Permission[] } = {
   permissions: [],
 };
 

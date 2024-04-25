@@ -12,24 +12,28 @@ const zPermission = z.object({
 });
 
 type Permission = z.infer<typeof zPermission>;
+const puddinType = {
+  name: 'Puddin',
+  description: 'The ability to dance with this much of your pudding',
+}
 
 const defaultPermissions = [
   {
-    type: { name: 'Puddin' },
+    type: puddinType,
     proposedName: 'The Family Pile',
     data: {
       proof: `Oh, it's in here alright.`,
     }
   },
   {
-    type: { name: 'Puddin' },
+    type: puddinType,
     proposedName: 'The Personal Stash',
     data: {
       proof: `Oh, it's in here alright.`,
     }
   },
   {
-    type: { name: 'Puddin' },
+    type: puddinType,
     proposedName: 'The Company Jiggles',
     data: {
       proof: `Oh, it's in here alright.`,
