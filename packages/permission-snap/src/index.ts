@@ -24,6 +24,7 @@ import { UserInputEventType, OnUserInputHandler, OnRpcRequestHandler, panel, hea
 import { createMyLibrary } from './myLibrary.ts'
 const PERMISSIONS_SNAP_ID = 'local:http://localhost:8080';
 import { zPermissionsOffer, PermissionsOffer, zPermissionToGrantParams, PermissionToGrantParams } from '../../kernel-snap/src/index.ts';
+import { Permission } from './myLibrary';
 
 let attenuatorSelections = {};
 
@@ -95,7 +96,7 @@ async function registerPermission (permission: Permission) {
     // Invoke the "hello" JSON-RPC method exposed by the Snap.
     const offer: PermissionsOffer = {
       id: permId,
-      proposedName: 'The Giant Pile of Pudding',
+      proposedName: permission.proposedName,
       type: permission.type,
     }
 

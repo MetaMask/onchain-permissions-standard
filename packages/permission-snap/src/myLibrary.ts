@@ -5,6 +5,10 @@ import { UserInputEventType, OnUserInputHandler, OnRpcRequestHandler, panel, hea
 // We can locally define this however we want:
 const zPermission = z.object({
   type: zTypeDescriptor,
+  proposedName: z.string(),
+  data: z.object({
+    proof: z.string(),
+  }),
 });
 
 type Permission = z.infer<typeof zPermission>;
@@ -12,6 +16,21 @@ type Permission = z.infer<typeof zPermission>;
 const defaultPermissions = [
   {
     type: { name: 'Puddin' },
+    proposedName: 'The Family Pile',
+    data: {
+      proof: `Oh, it's in here alright.`,
+    }
+  },
+  {
+    type: { name: 'Puddin' },
+    proposedName: 'The Personal Stash',
+    data: {
+      proof: `Oh, it's in here alright.`,
+    }
+  },
+  {
+    type: { name: 'Puddin' },
+    proposedName: 'The Company Jiggles',
     data: {
       proof: `Oh, it's in here alright.`,
     }
