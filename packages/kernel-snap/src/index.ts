@@ -85,6 +85,14 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
         // But eventually would be great to have some general-purpose type fields.
         return storedPermission.type.name === requestedPermission.type.name;
       });
+
+      const pinToIndex = {};
+      const indexToPin = {};
+      for (let i = 0; i < relevantPermissions.length; i++) {
+        const pin = generatePin();
+        pinToIndex[pin] = i;
+        indexToPin[i] = pin; 
+      }
       console.log(`found ${relevantPermissions.length} candidates`, relevantPermissions);
 
       if (relevantPermissions.length === 0) {
@@ -120,6 +128,8 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
       console.log('Prompting user for selection');
       let interfaceId;
       try {
+
+
         const ui = panel([
           heading('Permission Request'),
           text(`The site at ${origin} requests access to **${requestedPermission.type.name}**`),
@@ -131,11 +141,11 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
             heading('Your Inventory'),
             ...relevantPermissions.map((permission, index) => {
               console.log('generating a row for permission', permission.proposedName)
-              return row(`${index + 1}`, text(permission.proposedName));
+              return row(`${indexToPin[index]}`, text(permission.proposedName));
             }),
             input({
               name: 'selected-permission',
-              placeholder: 'Enter the number of your selection',
+              placeholder: 'Enter the PIN of a permission to approve.',
             }),
           ])
         ]);
@@ -167,7 +177,8 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
 
       // Get the user's selection:
       console.log('selected permission value', selectedPermissionValue);
-      const selectedIndex = parseInt(selectedPermissionValue) - 1;
+      const selectedPin = parseInt(selectedPermissionValue);
+      const selectedIndex = pinToIndex[selectedPin];
       console.log('index ', selectedIndex);
       const selectedPermission: Permission = relevantPermissions[selectedIndex];
       console.log('user selected', selectedPermission);
@@ -228,4 +239,10 @@ export const onUserInput: OnUserInputHandler = async ({ id, event }) => {
 
 function log (anything) {
   console.log(JSON.stringify(anything, null, 2));
+}
+
+function generatePin() {
+  const min = 1000;
+  const max = 9999;
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
