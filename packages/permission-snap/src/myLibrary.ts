@@ -96,7 +96,9 @@ const createMyLibrary = async ({ registerPermission }: { registerPermission: (pe
 
     issuePermissionTo: async (permission: any, attenuatorResult: any, recipient: SessionAccount): PermissionsResponse => {
       return {
-        submitToAddress: 'MY-INVOKER-OR-ENTRYPOINT',
+        submitToAddress: {
+          caip10Address: 'MY-INVOKER-OR-ENTRYPOINT',
+        },
         permissionsContext: 'THE-PUDDING-PROOF',
 
         grantedPolicy: {

@@ -54,10 +54,27 @@ const zUpgradeOp = z.object({
   target: zAddress,
   operation: z.string(),
 });
-
+/*
+ {
+  "submitToAddress": "MY-INVOKER-OR-ENTRYPOINT",
+  "permissionsContext": "THE-PUDDING-PROOF",
+  "grantedPolicy": {
+    "sessionAccount": {
+      "caip10Address": "TODO_EMBEDDED_ACCOUNT"
+    },
+    "type": {
+      "name": "Puddin"
+    },
+    "data": {
+      "caip10Address": "placeholder-walderoo",
+      "foo": "bar!"
+    }
+  }
+}
+*/
 export const zPermissionsResponse = z.object({
   grantedPolicy: zGrantedPolicy,
-  submitToAddress: z.string(),
+  submitToAddress: zAddress,
   permissionsContext: z.string(),
   initCode: z.string().optional(),
   upgradeOps: z.array(zUpgradeOp).optional(),

@@ -88,7 +88,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
       console.log(`found ${relevantPermissions.length} candidates`, relevantPermissions);
 
       if (relevantPermissions.length === 0) {
-        ui = panel([
+        const ui = panel([
           heading('Permission Request'),
           text(`The site at ${origin} requests access to **${requestedPermission.type.name}**`),
           requestedPermission.justification ? panel([
@@ -199,8 +199,10 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
           },
         });
         console.log('raw response', rawResponse);
-        const permissionsResponse: PermissionsResponse = zPermissionsResponse.passthrough()
-        .parse(rawResponse);
+        // TODO: Figure out why this fails and fix it.
+        // The error message is not currently helpful.
+        // const permissionsResponse: PermissionsResponse = zPermissionsResponse.passthrough().parse(rawResponse);
+        const permissionsResponse = rawResponse;
         console.log('validated response');
 
         console.log('Created permission response to return to dapp', permissionsResponse);
@@ -223,3 +225,7 @@ export const onUserInput: OnUserInputHandler = async ({ id, event }) => {
     selectedPermissionValue = event.value;
   }
 };
+
+function log (anything) {
+  console.log(JSON.stringify(anything, null, 2));
+}

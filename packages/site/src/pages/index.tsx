@@ -8,8 +8,8 @@ import {
   ReconnectButton,
   RequestPuddingProofButton,
   UsePuddingProofButton,
-  Card,
-} from '../components';
+  Card 
+ } from '../components';
 import { defaultSnapOrigin } from '../config';
 import {
   useMetaMask,
@@ -111,7 +111,8 @@ const Index = () => {
   const requestAccountSnap = useRequestSnap(accountSnapOrigin);
   const invokeKernelSnap = useInvokeSnap(kernelSnapOrigin);
   const invokeAccountSnap = useInvokeSnap(accountSnapOrigin);
-  const { puddingProof, setPuddingProof } = useState(false);
+  const [ puddingProof, setPuddingProof ] = useState(false);
+  const [ usedProof, setUsedProof ] = useState(false);
 
   const isMetaMaskReady = isLocalSnap(defaultSnapOrigin)
     ? isFlask
@@ -127,7 +128,8 @@ const Index = () => {
       params: permission,
     });
 
-    if (result && result.type.name === 'pudding') {
+    console.dir(result);
+    if (result && result.grantedPolicy.type.name === 'Puddin') {
       setPuddingProof(result);
     } else {
       alert('Permission denied.');
@@ -147,7 +149,7 @@ const Index = () => {
   };
 
   const handleUsePermissionClick = async () => {
-    await invokeKernelSnap({ method: 'hello' });
+    setUsedProof(true);
   };
 
   return (
@@ -191,22 +193,25 @@ const Index = () => {
             disabled={!isMetaMaskReady}
           />
         )}
-        {shouldDisplayReconnectButton(installedKernelSnap) && (
+
+      {installedKernelSnap && (
           <Card
             content={{
-              title: 'Reconnect',
+              title: '✅ 1. Reinstall Kernel',
               description:
-                'While connected to a local running snap this button will always be displayed in order to update the snap if a change is made.',
+                'Get started by installing the new permissions system.',
               button: (
-                <ReconnectButton
+                <ConnectButton
                   onClick={requestKernelSnap}
-                  disabled={!installedKernelSnap}
+                  disabled={!isMetaMaskReady}
                 />
               ),
             }}
-            disabled={!installedKernelSnap}
+            disabled={!isMetaMaskReady}
           />
         )}
+
+
 
        {!installedAccountSnap && (
           <Card
@@ -228,7 +233,7 @@ const Index = () => {
         {!!installedAccountSnap && (
           <Card
             content={{
-              title: '2: Pudding Account Installed',
+              title: '✅ 2: Reinstall Pudding Account',
               description:
                 'Second, install a new account type that knows how to use the permissions system.',
               button: (
@@ -238,11 +243,10 @@ const Index = () => {
                 />
               )
             }}
-            disabled={true}
           />
         )}
         
-        <Card
+        {!puddingProof && (<Card
           content={{
             title: '3. Request Pudding Access',
             description:
@@ -259,8 +263,28 @@ const Index = () => {
             Boolean(installedSnap) &&
             !shouldDisplayReconnectButton(installedSnap)
           }
-        />
-        <Card
+        />)}
+
+        {puddingProof && (<Card
+          content={{
+            title: '✅ 3. Re-Request Pudding Access',
+            description:
+              'Ask your wallet for pudding permission. More than just proof!',
+            button: (
+              <RequestPuddingProofButton onClick={handleRequestPermissionClick}
+                disabled={!installedKernelSnap}
+              />
+            ),
+          }}
+          disabled={!installedSnap}
+          fullWidth={
+            isMetaMaskReady &&
+            Boolean(installedSnap) &&
+            !shouldDisplayReconnectButton(installedSnap)
+          }
+        />)}
+
+        {!usedProof && (<Card
           content={{
             title: '4. Use Pudding',
             description:
@@ -271,13 +295,29 @@ const Index = () => {
               />
             ),
           }}
-          disabled={!installedSnap}
+          disabled={!puddingProof}
           fullWidth={
             isMetaMaskReady &&
             Boolean(installedSnap) &&
             !shouldDisplayReconnectButton(installedSnap)
           }
-        />
+        />)}
+        {usedProof && (<Card
+          content={{
+            title: '✅ 4. Use Pudding',
+            description:
+              'Congratulations!',
+            button: (
+              <iframe width="560" height="315" src="https://www.youtube.com/embed/ikbPoVbOB_E?si=kxo_i_YPZ4vWovKO" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+            ),
+          }}
+          disabled={!puddingProof}
+          fullWidth={
+            isMetaMaskReady &&
+            Boolean(installedSnap) &&
+            !shouldDisplayReconnectButton(installedSnap)
+          }
+        />)}
         <Notice>
           <p>
             Please note that the <b>snap.manifest.json</b> and{' '}
