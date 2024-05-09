@@ -272,11 +272,11 @@ const Index = () => {
               'Ask your wallet for pudding permission. More than just proof!',
             button: (
               <RequestPuddingProofButton onClick={handleRequestPermissionClick}
-                disabled={!installedKernelSnap}
+                disabled={!installedAccountSnap && !installedKernelSnap}
               />
             ),
           }}
-          disabled={!installedSnap}
+          disabled={!installedAccountSnap && !installedKernelSnap}
           fullWidth={
             isMetaMaskReady &&
             Boolean(installedSnap) &&
